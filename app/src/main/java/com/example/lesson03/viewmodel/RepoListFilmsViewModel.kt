@@ -64,14 +64,6 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     private var page = 1
     var firstStart: Boolean = false
 
-    //Snackbar
-    var snackbar : Snackbar? = null
-    private val fab by lazy {
-        R.id.fab as FloatingActionButton
-    }
-    /////
-
-
     //////////////
     fun addFilm(film: RFilm) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -99,11 +91,12 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         downloadsList()
     }
 
+
     fun downloadsList() {
         App.instance.api.getFilms(page)
             .enqueue(object : Callback<Themoviedb2> {
                 override fun onFailure(call: Call<Themoviedb2>, t: Throwable) {
-                    println("")
+                    call.cancel()
                     animBool.value = false
                     snackbarString.postValue("-1" + "%image%name%note")
                 }
@@ -258,28 +251,6 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
 
-    //snackbar ----------------------
-    fun snackbarShow(lik: Int, imagePath: String, name: String, note: String) {
-        val listener = View.OnClickListener {
-            println("")
-            if (lik == 1) {
-                updateLike(0, imagePath)
-            } else {
-                updateLike(1, imagePath)
-            }
-
-        }
-        if (lik == 1) snackbar =
-            Snackbar.make(fab, "$name - добавили в избранное", Snackbar.LENGTH_INDEFINITE)
-        if (lik == 0) snackbar =
-            Snackbar.make(fab, "$name - удалили из избранного", Snackbar.LENGTH_INDEFINITE)
-        snackbar?.setAction("Отменить", listener)
-        snackbar?.show()
-        fab.postDelayed({
-            snackbar?.dismiss()
-        }, 3000)
-    }
-    //------------------------
 
 }
 

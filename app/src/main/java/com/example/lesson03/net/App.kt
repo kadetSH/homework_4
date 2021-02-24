@@ -8,6 +8,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 class App : Application() {
 
@@ -23,6 +24,7 @@ class App : Application() {
     private fun initRetrofit() {
 
         val client = OkHttpClient.Builder()
+//            .pingInterval(2, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 return@addInterceptor chain.proceed(
                     chain
@@ -46,6 +48,7 @@ class App : Application() {
             .build()
 
         api = retrofit.create(Api::class.java)
+
     }
 
     companion object {
