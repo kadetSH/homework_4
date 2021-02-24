@@ -194,9 +194,16 @@ class FilmsFragment : Fragment() {
         }
 
         snackbar?.show()
-        fab?.postDelayed({
-            snackbar?.dismiss()
-        }, 3000)
+        if (lik == 1 or 0) {
+            fab?.postDelayed({
+                snackbar?.dismiss()
+            }, 3000)
+        }else{
+            fab?.postDelayed({
+                snackbar?.dismiss()
+            }, 40000)
+        }
+
 
     }
     //------------------------

@@ -24,7 +24,7 @@ class App : Application() {
     private fun initRetrofit() {
 
         val client = OkHttpClient.Builder()
-//            .pingInterval(2, TimeUnit.SECONDS)
+            .pingInterval(1, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 return@addInterceptor chain.proceed(
                     chain

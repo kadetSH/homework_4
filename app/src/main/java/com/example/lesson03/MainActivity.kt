@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun clickFilms() {
         viewModel.selectFilmsList()
+//        viewModel.openFilmLis()
     }
 
     fun selectFavorites() {

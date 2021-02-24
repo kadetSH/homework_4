@@ -37,6 +37,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     var readLikeBool = MutableLiveData<Boolean>()
     var readFilmsBool = MutableLiveData<Boolean>()
     var snackbarString = MutableLiveData<String>()
+    var addListFilm = false
 
     private val repository: FilmRepository
 
@@ -128,6 +129,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                             }
                         page += 1
                         updateList()
+                        addListFilm = false
                         animBool.value = false
                     } else {
                         println("")
@@ -171,8 +173,10 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
         ff?.let {
             if (it.size.minus(pos) == 6) {
-                println("")
-                openFilmLis()
+                if (addListFilm == false){
+                    openFilmLis()
+                    addListFilm = true
+                }
             }
         }
 
