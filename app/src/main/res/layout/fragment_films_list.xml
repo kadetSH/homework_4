@@ -7,14 +7,31 @@
     tools:context=".MainActivity"
     >
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/idToolbar"
+            style="@style/Toolbar"
+        app:navigationIcon="@drawable/baseline_description_24"
+        android:showAsAction="always"
+        />
+
+
+
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:id="@+id/idToolbar"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="?attr/colorPrimary"-->
+<!--        android:minHeight="?attr/actionBarSize"-->
+<!--        android:theme="?attr/actionBarTheme" />-->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/id_recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="55dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:itemCount="3"
-        tools:listitem="@layout/template"
-        />
+        tools:listitem="@layout/template" />
 
     <ImageView
         android:id="@+id/load_anim"
@@ -31,6 +48,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         app:srcCompat="@android:drawable/ic_dialog_email" />
+
+
 
 
 </FrameLayout>

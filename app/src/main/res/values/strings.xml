@@ -15,5 +15,6 @@
     <string name="menu_title_films_dell" translatable="false">Удалить фильм</string>
     <string name="menu_title_invite" translatable="false">Пригласить</string>
     <string name="header_name">Просмотр фильмов</string>
+    <string name="titleToolbar" translatable="false">Дополнительный выбор</string>
 
 </resources>

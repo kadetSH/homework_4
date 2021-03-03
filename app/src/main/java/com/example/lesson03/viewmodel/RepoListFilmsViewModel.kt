@@ -2,32 +2,21 @@ package com.example.lesson03.viewmodel
 
 import android.app.AlertDialog
 import android.app.Application
-import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.view.View
 import androidx.lifecycle.*
-import com.example.lesson03.FilmsDescriptionFragment
-import com.example.lesson03.R
-
 import com.example.lesson03.jsonMy.FilmsJS
-import com.example.lesson03.jsonMy.Themoviedb2
-import com.example.lesson03.net.App
+import com.example.lesson03.jsonMy.Themoviedb
+import com.example.lesson03.App
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import kotlin.coroutines.coroutineContext
 
 
 class RepoListFilmsViewModel(application: Application) : AndroidViewModel(application) {
@@ -49,10 +38,10 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         readAllLike = repository.readAllLike
     }
 
-    val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
-    val reposLiveDataLike = MutableLiveData<ArrayList<FilmsItem>>()
+    private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
+    private val reposLiveDataLike = MutableLiveData<ArrayList<FilmsItem>>()
     val animBool = MutableLiveData<Boolean>()
-    val items = mutableListOf<FilmsJS>()
+    private val items = mutableListOf<FilmsJS>()
     var list = ArrayList<FilmsItem>()
     var filmP: String = ""
     var favoriteName: ArrayList<String> = ArrayList()
@@ -63,6 +52,8 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         get() = reposLiveDataLike
 
     private var page = 1
+    val API_KEY = "2931998c3a80d7806199320f76d65298"
+    val langRu = "ru-Ru"
     var firstStart: Boolean = false
 
     //////////////
@@ -89,55 +80,62 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
     fun openFilmLis() {
         animBool.value = true
-        downloadsList()
+        GlobalScope.async {
+            downloadsList()
+        }
     }
 
 
-    fun downloadsList() {
-        App.instance.api.getFilms(page)
-            .enqueue(object : Callback<Themoviedb2> {
-                override fun onFailure(call: Call<Themoviedb2>, t: Throwable) {
-                    call.cancel()
-                    animBool.value = false
-                    snackbarString.postValue("-1" + "%image%name%note")
-                }
+     private fun downloadsList()  {
 
-                override fun onResponse(
-                    call: Call<Themoviedb2>,
-                    response: Response<Themoviedb2>,
-                ) {
-                    items.clear()
-                    if (response.isSuccessful) {
+             App.instance.api.getFilms(page, API_KEY, langRu)
+                 .enqueue(object  : Callback<Themoviedb> {
+                     override fun onFailure(call: Call<Themoviedb>, t: Throwable) {
+                         call.cancel()
+                         animBool.value = false
+                         snackbarString.postValue("-1" + "%image%name%note")
+                     }
 
-                        response.body()
-                            ?.getResults()?.forEach {
+                     override fun onResponse(
+                         call: Call<Themoviedb>,
+                         response: Response<Themoviedb>,
+                     ) {
+                         items.clear()
+                         if (response.isSuccessful) {
 
-                                addFilm(RFilm(0,
-                                    it!!.getTitle().toString(),
-                                    it!!.getBackdropPath().toString(),
-                                    0,
-                                    it!!.getOverview().toString()))
+                             response.body()
+                                 ?.getResults()?.forEach {
 
-                                it?.getTitle()?.let { it1 ->
-                                    FilmsJS(
-                                        it1,
-                                        it.getBackdropPath()!!,
-                                        0,
-                                        it.getOverview()!!
-                                    )
-                                }?.let { it2 -> items.add(it2) }
-                            }
-                        page += 1
-                        updateList()
-                        addListFilm = false
-                        animBool.value = false
-                    } else {
-                        println("")
-                    }
+                                     addFilm(
+                                         RFilm(
+                                             0,
+                                             it!!.getTitle().toString(),
+                                             it!!.getBackdropPath().toString(),
+                                             0,
+                                             it!!.getOverview().toString()
+                                         )
+                                     )
+
+                                     it?.getTitle()?.let { it1 ->
+                                         FilmsJS(
+                                             it1 as String,
+                                             it.getBackdropPath().toString()!!,
+                                             0,
+                                             it.getOverview().toString()!!
+                                         )
+                                     }?.let { it2 -> items.add(it2) }
+                                 }
+                             page += 1
+                             updateList()
+                             addListFilm = false
+                             animBool.value = false
+                         } else {
+                             println("")
+                         }
 
 
-                }
-            })
+                     }
+                 })
 
 
     }
@@ -217,7 +215,9 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     fun firstStart() {
         if (!firstStart) {
             firstStart = true
-            downloadsList()
+            GlobalScope.async {
+                downloadsList()
+            }
         }
     }
 
@@ -257,4 +257,5 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
 
 }
+
 

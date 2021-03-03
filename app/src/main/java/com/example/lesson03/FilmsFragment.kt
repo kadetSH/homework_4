@@ -1,29 +1,18 @@
 package com.example.lesson03
 
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.Animation
-import android.view.animation.BounceInterpolator
-import android.widget.RelativeLayout
-import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lesson03.FilmsDescriptionFragment.Companion.adapter
-
+import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
-import com.otus.otusaacpart1.data.entity.Repo
 import kotlinx.android.synthetic.main.fragment_films_list.*
 
 
@@ -72,10 +61,13 @@ class FilmsFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_films_list, container, false)
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         initRecycler()
+        observeViewModel()
+    }
+
+    private fun observeViewModel(){
         viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
             adapter.setItems(it)
         })
@@ -144,7 +136,6 @@ class FilmsFragment : Fragment() {
             val note = strArr[3]
             snackbarShow(lik, imagePath, name, note)
         })
-
     }
 
     private fun initRecycler() {
