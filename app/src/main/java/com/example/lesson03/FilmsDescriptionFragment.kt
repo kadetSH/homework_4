@@ -49,7 +49,6 @@ class FilmsDescriptionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         list = arguments?.getSerializable("spisok") as FilmsItem
-        println("")
         val toolbar = view.findViewById<Toolbar>(R.id.toolbarM)
         toolbar.title = list?.nameFilm
         var spisokFilm = resources.getStringArray(R.array.film)

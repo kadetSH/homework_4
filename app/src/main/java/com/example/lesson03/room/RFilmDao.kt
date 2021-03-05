@@ -5,12 +5,16 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.google.gson.annotations.Expose
 
 @Dao
 interface RFilmDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addFilm(film : RFilm)
+
+    @Query("SELECT * FROM films_table WHERE `idFilm` = :idFilm LIMIT 1") //idFilm, name, imagePath, `like`, description
+    suspend fun checkFilm(idFilm : Int) :  List<RFilm>
 
     @Query("SELECT * FROM films_table ORDER BY id ASC")
     fun readAllData() : LiveData<List<RFilm>>
@@ -26,4 +30,7 @@ interface RFilmDao {
 
     @Query("UPDATE films_table SET `like` = :lik WHERE imagePath = :imagePath")
     suspend fun updateLike(lik : Int, imagePath : String)
+
+    @Query("UPDATE films_table SET description = :description, imagePath = :imagePath  WHERE id = :id")
+    suspend fun updateSearchFilm(id : Int, imagePath : String, description: String)
 }

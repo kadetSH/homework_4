@@ -75,13 +75,12 @@ class FilmsFragment : Fragment() {
         viewModel.readAllData.observe(viewLifecycleOwner, Observer<List<RFilm>> {
             if (!firstStart) firstStart = true
             else {
-                println("")
                 listRoom.clear()
                 it.forEach {
                     val like: Boolean
                     if (it.like == 0) like = false
                     else like = true
-                    listRoom.add(FilmsItem(it.name, it.imagePath, it.description, "", like))
+                    listRoom.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm))
                 }
                 if (filmsBool) {
                     adapter.setItems(listRoom)
@@ -97,7 +96,7 @@ class FilmsFragment : Fragment() {
             it.forEach {
                 val like: Boolean
                 like = it.like != 0
-                listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like))
+                listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm))
             }
             if (favoritesBool) {
                 adapter.setItems(listLike)

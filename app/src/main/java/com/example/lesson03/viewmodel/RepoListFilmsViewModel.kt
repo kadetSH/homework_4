@@ -23,6 +23,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
     val readAllData: LiveData<List<RFilm>>
     val readAllLike: LiveData<List<RFilm>>
+
     var readLikeBool = MutableLiveData<Boolean>()
     var readFilmsBool = MutableLiveData<Boolean>()
     var snackbarString = MutableLiveData<String>()
@@ -33,9 +34,10 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     init {
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
-        delAll()
+//        delAll()
         readAllData = repository.readAllData
         readAllLike = repository.readAllLike
+
     }
 
     private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
@@ -63,6 +65,12 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
+    fun updateSearchFilm(id: Int, imagePath: String, description: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateSearchFilm(id, imagePath, description)
+        }
+    }
+
     fun delAll() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.delAll()
@@ -80,62 +88,81 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
     fun openFilmLis() {
         animBool.value = true
-        GlobalScope.async {
+        viewModelScope.launch(Dispatchers.IO) {
             downloadsList()
         }
     }
 
 
-     private fun downloadsList()  {
+    fun downloadsList() {
 
-             App.instance.api.getFilms(page, API_KEY, langRu)
-                 .enqueue(object  : Callback<Themoviedb> {
-                     override fun onFailure(call: Call<Themoviedb>, t: Throwable) {
-                         call.cancel()
-                         animBool.value = false
-                         snackbarString.postValue("-1" + "%image%name%note")
-                     }
+        App.instance.api.getFilms(page, API_KEY, langRu)
+            .enqueue(object : Callback<Themoviedb> {
+                override fun onFailure(call: Call<Themoviedb>, t: Throwable) {
+                    call.cancel()
+                    animBool.value = false
+                    snackbarString.postValue("-1" + "%image%name%note")
+                }
 
-                     override fun onResponse(
-                         call: Call<Themoviedb>,
-                         response: Response<Themoviedb>,
-                     ) {
-                         items.clear()
-                         if (response.isSuccessful) {
+                override fun onResponse(
+                    call: Call<Themoviedb>,
+                    response: Response<Themoviedb>,
+                ) {
+                    items.clear()
+                    if (response.isSuccessful) {
 
-                             response.body()
-                                 ?.getResults()?.forEach {
+                        response.body()
+                            ?.getResults()?.forEach {
 
-                                     addFilm(
-                                         RFilm(
-                                             0,
-                                             it!!.getTitle().toString(),
-                                             it!!.getBackdropPath().toString(),
-                                             0,
-                                             it!!.getOverview().toString()
-                                         )
-                                     )
+                                viewModelScope.launch(Dispatchers.IO) {
+                                    var searchFilm: List<RFilm> =
+                                        repository.checkFilm(it?.getIdFilm() as Int)
 
-                                     it?.getTitle()?.let { it1 ->
-                                         FilmsJS(
-                                             it1 as String,
-                                             it.getBackdropPath().toString()!!,
-                                             0,
-                                             it.getOverview().toString()!!
-                                         )
-                                     }?.let { it2 -> items.add(it2) }
-                                 }
-                             page += 1
-                             updateList()
-                             addListFilm = false
-                             animBool.value = false
-                         } else {
-                             println("")
-                         }
+                                    if (searchFilm.isNotEmpty()) {
+
+                                        updateSearchFilm(
+                                            searchFilm[0].id,
+                                            searchFilm[0].imagePath,
+                                            searchFilm[0].description
+                                        )
+
+                                    } else {
+                                        //Циклом добавляем фильмы в Room
+                                        addFilm(
+                                            RFilm(
+                                                0,
+                                                it!!.getIdFilm() as Int,
+                                                it!!.getTitle().toString(),
+                                                it!!.getBackdropPath().toString(),
+                                                0,
+                                                it!!.getOverview().toString()
+                                            )
+                                        )
+                                        /////////////////////
+                                    }
+
+                                    it?.getTitle()?.let { it1 ->
+                                        FilmsJS(
+                                            it1 as String,
+                                            it.getBackdropPath().toString()!!,
+                                            0,
+                                            it.getOverview().toString()!!,
+                                            it.getIdFilm() as Int
+                                        )
+                                    }?.let { it2 -> items.add(it2) }
+                                }
+                            }
+                        page += 1
+                        updateList()
+                        addListFilm = false
+                        animBool.value = false
+                    } else {
+                        println("")
+                    }
 
 
-                     }
-                 })
+                }
+            })
 
 
     }
@@ -159,7 +186,8 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                 fillArrays(
                     arrayOf(itF.title),
                     arrayOf(itF.image),
-                    arrayOf(itF.description)
+                    arrayOf(itF.description),
+                    arrayOf(itF.idFilm)
                 )
             )
             reposLiveData.postValue(list)
@@ -171,7 +199,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
         ff?.let {
             if (it.size.minus(pos) == 6) {
-                if (addListFilm == false){
+                if (addListFilm == false) {
                     openFilmLis()
                     addListFilm = true
                 }
@@ -189,13 +217,13 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         context.startActivity(sendIntent)
     }
 
-    fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context){
+    fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
         val lst =
             DialogInterface.OnClickListener { dialog, which ->
-                if (which == -2){
+                if (which == -2) {
                     dialog.dismiss()
-                }else if (which == -1){
+                } else if (which == -1) {
                     dellSelectedFilm(filmsItem.imageFilm)
                 }
             }
@@ -206,7 +234,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         dialog.show()
     }
 
-    fun dellSelectedFilm(imagePath: String){
+    fun dellSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.delleteFilm(imagePath)
         }
@@ -215,7 +243,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     fun firstStart() {
         if (!firstStart) {
             firstStart = true
-            GlobalScope.async {
+            viewModelScope.launch {
                 downloadsList()
             }
         }
@@ -225,6 +253,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         titleArray: Array<String>,
         filmImageArray: Array<String>,
         descriptionArray: Array<String>,
+        idFilmArray: Array<Int>
     ): List<FilmsItem> {
         var list = ArrayList<FilmsItem>()
         for (i in 0..titleArray.size - 1) {
@@ -247,13 +276,17 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
             }
 
             var spisokItem = FilmsItem(
-                titleArray[i], filmImageArray[i], shortDescription, proverka, boolFavorite
+                titleArray[i],
+                filmImageArray[i],
+                shortDescription,
+                proverka,
+                boolFavorite,
+                idFilmArray[i]
             )
             list.add(spisokItem)
         }
         return list
     }
-
 
 
 }

@@ -74,5 +74,9 @@ data class Result(
     fun getOverview(): Any {
         return overview!!
     }
+
+    fun getIdFilm(): Any {
+        return id!!
+    }
 }
 

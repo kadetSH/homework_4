@@ -27,7 +27,7 @@ abstract class FilmDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     FilmDatabase::class.java,
-                    "film_database"
+                    "film_database2"
                 ).build()
                 INSTANCE = instance
 
