@@ -1,31 +1,34 @@
 package com.example.lesson03
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
-import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.lesson03.recyclerMy.FilmsItem
-import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
-    FilmsFragment.OnFilmLikeClickListener { //,
+    FilmsFragment.OnFilmLikeClickListener {
 
     private val viewModel by lazy {
         ViewModelProvider(this).get(RepoListFilmsViewModel::class.java)
     }
 
+    private val toolbar by lazy {
+        findViewById<androidx.appcompat.widget.Toolbar>(R.id.idToolbar)
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        toolbar.setOnClickListener {
+            id_drawerLayout.openDrawer(GravityCompat.START)
+        }
 
         id_navigation.setNavigationItemSelectedListener(this)
         viewModel.firstStart()
@@ -62,6 +65,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     fun clickFilms() {
         viewModel.selectFilmsList()
+//        viewModel.openFilmLis()
     }
 
     fun selectFavorites() {

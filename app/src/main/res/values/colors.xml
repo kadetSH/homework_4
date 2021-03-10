@@ -7,4 +7,5 @@
     <color name="clGreen">#008000</color>
     <color name="starTrue">#FFFF00</color>
     <color name="starFalse">#808080</color>
+    <color name="light_gray">#D3D3D3</color>
 </resources>

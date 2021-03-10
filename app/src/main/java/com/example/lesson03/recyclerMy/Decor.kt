@@ -1,4 +1,4 @@
-package com.example.lesson03
+package com.example.lesson03.recyclerMy
 
 import android.graphics.Canvas
 import android.graphics.Rect
@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 public class Decor(private val verticalSpaceHeight: Int) : RecyclerView.ItemDecoration() {
 
-//    private val greenStr : String = "#76ff03"
+
 
     override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         super.onDraw(c, parent, state)
