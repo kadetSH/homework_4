@@ -1,29 +1,18 @@
 package com.example.lesson03
 
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.Animation
-import android.view.animation.BounceInterpolator
-import android.widget.RelativeLayout
-import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lesson03.FilmsDescriptionFragment.Companion.adapter
-
+import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
-import com.otus.otusaacpart1.data.entity.Repo
 import kotlinx.android.synthetic.main.fragment_films_list.*
 
 
@@ -72,10 +61,13 @@ class FilmsFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_films_list, container, false)
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         initRecycler()
+        observeViewModel()
+    }
+
+    private fun observeViewModel(){
         viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
             adapter.setItems(it)
         })
@@ -83,13 +75,12 @@ class FilmsFragment : Fragment() {
         viewModel.readAllData.observe(viewLifecycleOwner, Observer<List<RFilm>> {
             if (!firstStart) firstStart = true
             else {
-                println("")
                 listRoom.clear()
                 it.forEach {
                     val like: Boolean
                     if (it.like == 0) like = false
                     else like = true
-                    listRoom.add(FilmsItem(it.name, it.imagePath, it.description, "", like))
+                    listRoom.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm))
                 }
                 if (filmsBool) {
                     adapter.setItems(listRoom)
@@ -105,7 +96,7 @@ class FilmsFragment : Fragment() {
             it.forEach {
                 val like: Boolean
                 like = it.like != 0
-                listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like))
+                listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm))
             }
             if (favoritesBool) {
                 adapter.setItems(listLike)
@@ -144,7 +135,6 @@ class FilmsFragment : Fragment() {
             val note = strArr[3]
             snackbarShow(lik, imagePath, name, note)
         })
-
     }
 
     private fun initRecycler() {
@@ -194,9 +184,16 @@ class FilmsFragment : Fragment() {
         }
 
         snackbar?.show()
-        fab?.postDelayed({
-            snackbar?.dismiss()
-        }, 3000)
+        if (lik == 1 or 0) {
+            fab?.postDelayed({
+                snackbar?.dismiss()
+            }, 3000)
+        }else{
+            fab?.postDelayed({
+                snackbar?.dismiss()
+            }, 40000)
+        }
+
 
     }
     //------------------------

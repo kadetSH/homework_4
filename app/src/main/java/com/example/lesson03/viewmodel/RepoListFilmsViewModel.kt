@@ -2,56 +2,48 @@ package com.example.lesson03.viewmodel
 
 import android.app.AlertDialog
 import android.app.Application
-import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.view.View
 import androidx.lifecycle.*
-import com.example.lesson03.FilmsDescriptionFragment
-import com.example.lesson03.R
-
 import com.example.lesson03.jsonMy.FilmsJS
-import com.example.lesson03.jsonMy.Themoviedb2
-import com.example.lesson03.net.App
+import com.example.lesson03.jsonMy.Themoviedb
+import com.example.lesson03.App
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import kotlin.coroutines.coroutineContext
 
 
 class RepoListFilmsViewModel(application: Application) : AndroidViewModel(application) {
 
     val readAllData: LiveData<List<RFilm>>
     val readAllLike: LiveData<List<RFilm>>
+
     var readLikeBool = MutableLiveData<Boolean>()
     var readFilmsBool = MutableLiveData<Boolean>()
     var snackbarString = MutableLiveData<String>()
+    var addListFilm = false
 
     private val repository: FilmRepository
 
     init {
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
-        delAll()
+//        delAll()
         readAllData = repository.readAllData
         readAllLike = repository.readAllLike
+
     }
 
-    val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
-    val reposLiveDataLike = MutableLiveData<ArrayList<FilmsItem>>()
+    private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
+    private val reposLiveDataLike = MutableLiveData<ArrayList<FilmsItem>>()
     val animBool = MutableLiveData<Boolean>()
-    val items = mutableListOf<FilmsJS>()
+    private val items = mutableListOf<FilmsJS>()
     var list = ArrayList<FilmsItem>()
     var filmP: String = ""
     var favoriteName: ArrayList<String> = ArrayList()
@@ -62,20 +54,20 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         get() = reposLiveDataLike
 
     private var page = 1
+    val API_KEY = "2931998c3a80d7806199320f76d65298"
+    val langRu = "ru-Ru"
     var firstStart: Boolean = false
-
-    //Snackbar
-    var snackbar : Snackbar? = null
-    private val fab by lazy {
-        R.id.fab as FloatingActionButton
-    }
-    /////
-
 
     //////////////
     fun addFilm(film: RFilm) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.addFilm(film)
+        }
+    }
+
+    fun updateSearchFilm(id: Int, imagePath: String, description: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateSearchFilm(id, imagePath, description)
         }
     }
 
@@ -96,21 +88,25 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
     fun openFilmLis() {
         animBool.value = true
-        downloadsList()
+        viewModelScope.launch(Dispatchers.IO) {
+            downloadsList()
+        }
     }
 
+
     fun downloadsList() {
-        App.instance.api.getFilms(page)
-            .enqueue(object : Callback<Themoviedb2> {
-                override fun onFailure(call: Call<Themoviedb2>, t: Throwable) {
-                    println("")
+
+        App.instance.api.getFilms(page, API_KEY, langRu)
+            .enqueue(object : Callback<Themoviedb> {
+                override fun onFailure(call: Call<Themoviedb>, t: Throwable) {
+                    call.cancel()
                     animBool.value = false
                     snackbarString.postValue("-1" + "%image%name%note")
                 }
 
                 override fun onResponse(
-                    call: Call<Themoviedb2>,
-                    response: Response<Themoviedb2>,
+                    call: Call<Themoviedb>,
+                    response: Response<Themoviedb>,
                 ) {
                     items.clear()
                     if (response.isSuccessful) {
@@ -118,23 +114,47 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                         response.body()
                             ?.getResults()?.forEach {
 
-                                addFilm(RFilm(0,
-                                    it!!.getTitle().toString(),
-                                    it!!.getBackdropPath().toString(),
-                                    0,
-                                    it!!.getOverview().toString()))
+                                viewModelScope.launch(Dispatchers.IO) {
+                                    var searchFilm: List<RFilm> =
+                                        repository.checkFilm(it?.getIdFilm() as Int)
 
-                                it?.getTitle()?.let { it1 ->
-                                    FilmsJS(
-                                        it1,
-                                        it.getBackdropPath()!!,
-                                        0,
-                                        it.getOverview()!!
-                                    )
-                                }?.let { it2 -> items.add(it2) }
+                                    if (searchFilm.isNotEmpty()) {
+
+                                        updateSearchFilm(
+                                            searchFilm[0].id,
+                                            searchFilm[0].imagePath,
+                                            searchFilm[0].description
+                                        )
+
+                                    } else {
+                                        //Циклом добавляем фильмы в Room
+                                        addFilm(
+                                            RFilm(
+                                                0,
+                                                it!!.getIdFilm() as Int,
+                                                it!!.getTitle().toString(),
+                                                it!!.getBackdropPath().toString(),
+                                                0,
+                                                it!!.getOverview().toString()
+                                            )
+                                        )
+                                        /////////////////////
+                                    }
+
+                                    it?.getTitle()?.let { it1 ->
+                                        FilmsJS(
+                                            it1 as String,
+                                            it.getBackdropPath().toString()!!,
+                                            0,
+                                            it.getOverview().toString()!!,
+                                            it.getIdFilm() as Int
+                                        )
+                                    }?.let { it2 -> items.add(it2) }
+                                }
                             }
                         page += 1
                         updateList()
+                        addListFilm = false
                         animBool.value = false
                     } else {
                         println("")
@@ -166,7 +186,8 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                 fillArrays(
                     arrayOf(itF.title),
                     arrayOf(itF.image),
-                    arrayOf(itF.description)
+                    arrayOf(itF.description),
+                    arrayOf(itF.idFilm)
                 )
             )
             reposLiveData.postValue(list)
@@ -178,8 +199,10 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
         ff?.let {
             if (it.size.minus(pos) == 6) {
-                println("")
-                openFilmLis()
+                if (addListFilm == false) {
+                    openFilmLis()
+                    addListFilm = true
+                }
             }
         }
 
@@ -194,13 +217,13 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         context.startActivity(sendIntent)
     }
 
-    fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context){
+    fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
         val lst =
             DialogInterface.OnClickListener { dialog, which ->
-                if (which == -2){
+                if (which == -2) {
                     dialog.dismiss()
-                }else if (which == -1){
+                } else if (which == -1) {
                     dellSelectedFilm(filmsItem.imageFilm)
                 }
             }
@@ -211,7 +234,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         dialog.show()
     }
 
-    fun dellSelectedFilm(imagePath: String){
+    fun dellSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.delleteFilm(imagePath)
         }
@@ -220,7 +243,9 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     fun firstStart() {
         if (!firstStart) {
             firstStart = true
-            downloadsList()
+            viewModelScope.launch {
+                downloadsList()
+            }
         }
     }
 
@@ -228,6 +253,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         titleArray: Array<String>,
         filmImageArray: Array<String>,
         descriptionArray: Array<String>,
+        idFilmArray: Array<Int>
     ): List<FilmsItem> {
         var list = ArrayList<FilmsItem>()
         for (i in 0..titleArray.size - 1) {
@@ -250,7 +276,12 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
             }
 
             var spisokItem = FilmsItem(
-                titleArray[i], filmImageArray[i], shortDescription, proverka, boolFavorite
+                titleArray[i],
+                filmImageArray[i],
+                shortDescription,
+                proverka,
+                boolFavorite,
+                idFilmArray[i]
             )
             list.add(spisokItem)
         }
@@ -258,28 +289,6 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
 
-    //snackbar ----------------------
-    fun snackbarShow(lik: Int, imagePath: String, name: String, note: String) {
-        val listener = View.OnClickListener {
-            println("")
-            if (lik == 1) {
-                updateLike(0, imagePath)
-            } else {
-                updateLike(1, imagePath)
-            }
-
-        }
-        if (lik == 1) snackbar =
-            Snackbar.make(fab, "$name - добавили в избранное", Snackbar.LENGTH_INDEFINITE)
-        if (lik == 0) snackbar =
-            Snackbar.make(fab, "$name - удалили из избранного", Snackbar.LENGTH_INDEFINITE)
-        snackbar?.setAction("Отменить", listener)
-        snackbar?.show()
-        fab.postDelayed({
-            snackbar?.dismiss()
-        }, 3000)
-    }
-    //------------------------
-
 }
+
 

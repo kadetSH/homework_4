@@ -1,17 +1,9 @@
 package com.example.lesson03.recyclerMy
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lesson03.R
-import com.example.lesson03.viewmodel.RepoListFilmsViewModel
-import com.otus.otusaacpart1.data.entity.Repo
-import kotlinx.coroutines.withContext
 
 class FilmsAdapter(private val layoutInflater: LayoutInflater,
                    private val items: ArrayList<FilmsItem>,

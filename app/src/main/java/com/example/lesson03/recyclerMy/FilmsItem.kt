@@ -7,5 +7,6 @@ data class FilmsItem(
     var imageFilm : String,
     var shortDescription : String,
     var proverka : String,
-    var star : Boolean
+    var star : Boolean,
+    var idFilm : Int
 ) : Serializable

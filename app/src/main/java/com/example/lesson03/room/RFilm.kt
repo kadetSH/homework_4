@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class RFilm(
     @PrimaryKey(autoGenerate = true)
     val id : Int,
+    val idFilm : Int,
     val name : String,
     val imagePath : String,
     val like : Int,
