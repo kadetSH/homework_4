@@ -8,6 +8,7 @@ class FilmRepository(private val filmDao : RFilmDao) {
 
     val readAllData : LiveData<List<RFilm>> = filmDao.readAllData()
     val readAllLike : LiveData<List<RFilm>> = filmDao.readAllLike()
+    val readAllReminder : LiveData<List<RFilm>> = filmDao.readAllReminder()
 
     suspend fun checkFilm(idFilm: Int) : List<RFilm> {
         return filmDao.checkFilm(idFilm)
@@ -31,6 +32,10 @@ class FilmRepository(private val filmDao : RFilmDao) {
 
     suspend fun updateSearchFilm(id: Int, imagePath: String, description: String){
         filmDao.updateSearchFilm(id, imagePath, description)
+    }
+
+    suspend fun updateReminder(lik: Int, imagePath: String, reminderDataTime: String){
+        filmDao.updateReminder(lik, imagePath, reminderDataTime)
     }
 
 }

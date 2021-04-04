@@ -18,6 +18,7 @@ abstract class FilmDatabase : RoomDatabase() {
         private var INSTANCE : FilmDatabase? = null
 
         fun getFilmDatabase(context: Context): FilmDatabase{
+//            throw IllegalArgumentException()
             val tempInstance = INSTANCE
             val applicationScope = CoroutineScope(SupervisorJob())
             if (tempInstance != null){
@@ -27,7 +28,7 @@ abstract class FilmDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     FilmDatabase::class.java,
-                    "film_database2"
+                    "film_database4"
                 ).build()
                 INSTANCE = instance
 

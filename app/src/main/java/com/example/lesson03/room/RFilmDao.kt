@@ -13,7 +13,7 @@ interface RFilmDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addFilm(film : RFilm)
 
-    @Query("SELECT * FROM films_table WHERE `idFilm` = :idFilm LIMIT 1") //idFilm, name, imagePath, `like`, description
+    @Query("SELECT * FROM films_table WHERE `idFilm` = :idFilm LIMIT 1")
     suspend fun checkFilm(idFilm : Int) :  List<RFilm>
 
     @Query("SELECT * FROM films_table ORDER BY id ASC")
@@ -21,6 +21,9 @@ interface RFilmDao {
 
     @Query("SELECT * FROM films_table WHERE `like` = 1 ORDER BY id ASC")
     fun readAllLike() : LiveData<List<RFilm>>
+
+    @Query("SELECT * FROM films_table WHERE reminder = 1 ORDER BY id ASC")
+    fun readAllReminder() : LiveData<List<RFilm>>
 
     @Query("DELETE FROM films_table")
     suspend fun deleteAll()
@@ -33,4 +36,7 @@ interface RFilmDao {
 
     @Query("UPDATE films_table SET description = :description, imagePath = :imagePath  WHERE id = :id")
     suspend fun updateSearchFilm(id : Int, imagePath : String, description: String)
+
+    @Query("UPDATE films_table SET reminderDataTime = :reminderDataTime, reminder = :reminder WHERE imagePath = :imagePath")
+    suspend fun updateReminder(reminder : Int, imagePath : String, reminderDataTime: String)
 }

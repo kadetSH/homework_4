@@ -21,11 +21,13 @@ class FilmsFragment : Fragment() {
     var list = ArrayList<FilmsItem>()
     var listRoom = ArrayList<FilmsItem>()
     var listLike = ArrayList<FilmsItem>()
+    var listReminder = ArrayList<FilmsItem>()
     private lateinit var starAnim: Animation
     private var firstStart = false
 
     var filmsBool: Boolean = true
     var favoritesBool: Boolean = false
+    var reminderBool: Boolean = false
 
 
     private val viewModel by lazy {
@@ -80,7 +82,7 @@ class FilmsFragment : Fragment() {
                     val like: Boolean
                     if (it.like == 0) like = false
                     else like = true
-                    listRoom.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm))
+                    listRoom.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm, it.reminder, it.reminderDataTime))
                 }
                 if (filmsBool) {
                     adapter.setItems(listRoom)
@@ -96,18 +98,40 @@ class FilmsFragment : Fragment() {
             it.forEach {
                 val like: Boolean
                 like = it.like != 0
-                listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm))
+                listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm, it.reminder, it.reminderDataTime))
             }
             if (favoritesBool) {
                 adapter.setItems(listLike)
             }
         })
 
+        viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>>{
+            listReminder.clear()
+                it.forEach {
+                    val like: Boolean
+                    like = it.like != 0
+                    listReminder.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm, it.reminder, it.reminderDataTime))
+                }
+            if (reminderBool){
+                adapter.setItems(listReminder)
+            }
+        })
+
         viewModel.readLikeBool.observe(viewLifecycleOwner, Observer<Boolean> {
             filmsBool = false
+            reminderBool = false
             if (it) {
                 adapter.setItems(listLike)
                 favoritesBool = true
+            }
+        })
+
+        viewModel.readReminderBool.observe(viewLifecycleOwner, Observer<Boolean> {
+            filmsBool = false
+            favoritesBool = false
+            if (it) {
+                adapter.setItems(listReminder)
+                reminderBool = true
             }
         })
 

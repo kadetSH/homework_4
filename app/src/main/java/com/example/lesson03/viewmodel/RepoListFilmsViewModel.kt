@@ -23,9 +23,11 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
     val readAllData: LiveData<List<RFilm>>
     val readAllLike: LiveData<List<RFilm>>
+    val readAllReminder: LiveData<List<RFilm>>
 
     var readLikeBool = MutableLiveData<Boolean>()
     var readFilmsBool = MutableLiveData<Boolean>()
+    var readReminderBool = MutableLiveData<Boolean>()
     var snackbarString = MutableLiveData<String>()
     var addListFilm = false
 
@@ -37,7 +39,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 //        delAll()
         readAllData = repository.readAllData
         readAllLike = repository.readAllLike
-
+        readAllReminder = repository.readAllReminder
     }
 
     private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
@@ -78,9 +80,14 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun updateLike(lik: Int, imagePath: String) {
-
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateLike(lik, imagePath)
+        }
+    }
+
+    fun updateReminder(reminder: Int, imagePath: String, reminderDataTime: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateReminder(reminder, imagePath, reminderDataTime)
         }
     }
     /////////////////////
@@ -135,7 +142,9 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                                                 it!!.getTitle().toString(),
                                                 it!!.getBackdropPath().toString(),
                                                 0,
-                                                it!!.getOverview().toString()
+                                                it!!.getOverview().toString(),
+                                                0,
+                                                ""
                                             )
                                         )
                                         /////////////////////
@@ -147,9 +156,13 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                                             it.getBackdropPath().toString()!!,
                                             0,
                                             it.getOverview().toString()!!,
-                                            it.getIdFilm() as Int
+                                            it.getIdFilm() as Int,
+                                            0,
+                                            ""
                                         )
-                                    }?.let { it2 -> items.add(it2) }
+                                    }?.let { it2 ->
+                                        items.add(it2)
+                                    }
                                 }
                             }
                         page += 1
@@ -170,11 +183,19 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     fun selectLikeList() {
         readLikeBool.postValue(true)
         readFilmsBool.postValue(false)
+        readReminderBool.postValue(false)
     }
 
     fun selectFilmsList() {
         readFilmsBool.postValue(true)
         readLikeBool.postValue(false)
+        readReminderBool.postValue(false)
+    }
+
+    fun selectReminderList(){
+        readFilmsBool.postValue(false)
+        readLikeBool.postValue(false)
+        readReminderBool.postValue(true)
     }
 
 
@@ -187,7 +208,9 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                     arrayOf(itF.title),
                     arrayOf(itF.image),
                     arrayOf(itF.description),
-                    arrayOf(itF.idFilm)
+                    arrayOf(itF.idFilm),
+                    arrayOf(itF.reminder),
+                    arrayOf(itF.reminderDataTime)
                 )
             )
             reposLiveData.postValue(list)
@@ -243,6 +266,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     fun firstStart() {
         if (!firstStart) {
             firstStart = true
+
             viewModelScope.launch {
                 downloadsList()
             }
@@ -253,7 +277,9 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         titleArray: Array<String>,
         filmImageArray: Array<String>,
         descriptionArray: Array<String>,
-        idFilmArray: Array<Int>
+        idFilmArray: Array<Int>,
+        reminderArray: Array<Int>,
+        reminderDataTime: Array<String>
     ): List<FilmsItem> {
         var list = ArrayList<FilmsItem>()
         for (i in 0..titleArray.size - 1) {
@@ -281,7 +307,9 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                 shortDescription,
                 proverka,
                 boolFavorite,
-                idFilmArray[i]
+                idFilmArray[i],
+                reminderArray[i],
+                reminderDataTime[i]
             )
             list.add(spisokItem)
         }
@@ -290,5 +318,3 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
 
 }
-
-

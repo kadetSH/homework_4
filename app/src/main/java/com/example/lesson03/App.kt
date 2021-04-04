@@ -69,7 +69,7 @@ class App : Application() {
 
     companion object {
         const val BASE_URL =
-            "https://api.themoviedb.org/3/discover/"  //100?api_key=576c50d1b23a4e5c26962aa1196de8f3
+            "https://api.themoviedb.org/3/"  //100?api_key=576c50d1b23a4e5c26962aa1196de8f3
 
         lateinit var instance: App
             private set

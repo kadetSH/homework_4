@@ -17,6 +17,10 @@
             android:icon="@drawable/ic_favorites"
             android:title="@string/menu_title_favorites" />
         <item
+            android:id="@+id/id_watch_leater"
+            android:icon="@drawable/ic_watch_later"
+            android:title="@string/menu_watch_later" />
+        <item
             android:id="@+id/id_invite"
             android:icon="@drawable/ic_invite"
             android:title="@string/menu_title_invite" />

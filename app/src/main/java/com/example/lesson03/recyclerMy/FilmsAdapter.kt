@@ -30,6 +30,14 @@ class FilmsAdapter(private val layoutInflater: LayoutInflater,
         holder.dellFilmIcon.setOnClickListener {
             listener?.invoke(items[position], position, "dellIcon")
         }
+
+        holder.reminder.setOnClickListener {
+            listener?.invoke(items[position], position, "reminder")
+        }
+
+        holder.reminderDataTime.setOnClickListener {
+            listener?.invoke(items[position], position, "reminderDataTime")
+        }
     }
 
     fun setItems(rep : ArrayList<FilmsItem>) {

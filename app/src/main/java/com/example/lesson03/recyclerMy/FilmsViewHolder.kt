@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lesson03.R
 import com.squareup.picasso.Picasso
@@ -18,6 +19,8 @@ class FilmsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var star = itemView.idStar
     var description = itemView.description
     var dellFilmIcon = itemView.dellFilm
+    var reminder = itemView.idReminder
+    val reminderDataTime = itemView.idReminderDataTime
 
     fun bind(item: FilmsItem) {
 
@@ -26,6 +29,8 @@ class FilmsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         (itemView.nameFilm as TextView).text = item.nameFilm
         (itemView.shortDescription as TextView).text = item.shortDescription
         star.isSelected = item.star
+
+
 
         Picasso.get()
             .load(imagePut)
@@ -41,6 +46,16 @@ class FilmsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             var starAnim = android.view.animation.AnimationUtils.loadAnimation(star.context, R.anim.scale_star_1)
             star.startAnimation(starAnim)
         }else star.setBackgroundColor(colorFalse)
+
+        if (item.reminder == 1){
+            reminder.setBackgroundColor(colorTrue)
+            reminderDataTime.isVisible = true
+            reminderDataTime.text = item.reminderDataTime
+        }else {
+            reminder.setBackgroundColor(colorFalse)
+            reminderDataTime.isVisible = false
+        }
+
 
     }
 

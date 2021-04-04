@@ -82,4 +82,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/description"
         app:srcCompat="@drawable/ic_films_dell" />
+
+    <ImageView
+        android:id="@+id/idReminder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:contentDescription="TODO"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imageFilmId"
+        app:layout_constraintTop_toBottomOf="@+id/idStar"
+        app:srcCompat="@android:drawable/ic_lock_idle_alarm" />
+
+    <TextView
+        android:id="@+id/idReminderDataTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:textColor="@color/starTrue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imageFilmId"
+        app:layout_constraintTop_toBottomOf="@+id/idReminder" />
 </androidx.constraintlayout.widget.ConstraintLayout>

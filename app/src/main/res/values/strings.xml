@@ -11,10 +11,16 @@
     <string name="title_favorites_activity" translatable="false">Фавориты</string>
     <string name="menu_title_films" translatable="false">Фильмы</string>
     <string name="menu_title_favorites" translatable="false">Фавориты</string>
+    <string name="menu_watch_later" translatable="false">Посмотреть позже</string>
     <string name="menu_title_films_add" translatable="false">Добавить фильм</string>
     <string name="menu_title_films_dell" translatable="false">Удалить фильм</string>
     <string name="menu_title_invite" translatable="false">Пригласить</string>
-    <string name="header_name">Просмотр фильмов</string>
+    <string name="header_name" translatable="false">Просмотр фильмов</string>
     <string name="titleToolbar" translatable="false">Дополнительный выбор</string>
+    <string name="reminderTitle" translatable="false">Выбор даты и времени для напоминания</string>
+    <string name="reminderDate" translatable="false">Дата</string>
+    <string name="reminderTime" translatable="false">Время</string>
+    <string name="reminderSave" translatable="false">Сохранить</string>
+    <string name="reminderCancell" translatable="false">Отменить</string>
 
 </resources>
