@@ -1,12 +1,10 @@
 package com.example.lesson03
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.template.view.*
 
 
 class ReminderActivity : AppCompatActivity() {
@@ -23,16 +21,13 @@ class ReminderActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.imageFilmID)
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder)
 
-        var fName = this.intent.getStringExtra("EXTRAnameFilm")
-        var fDescription = intent.getStringExtra("EXTRA_descriptionFilm")
-        var fImagePath = intent.getStringExtra("EXTRA_imagePath")
-
-
+        val fName = this.intent.getStringExtra("EXTRAnameFilm")
+        val fDescription = intent.getStringExtra("EXTRA_descriptionFilm")
+        val fImagePath = intent.getStringExtra("EXTRA_imagePath")
 
         fName?.let { name ->
             fDescription?.let { description ->
@@ -43,7 +38,6 @@ class ReminderActivity : AppCompatActivity() {
                 }
             }
         }
-
     }
 
     fun loadImage(imagePath: String) {

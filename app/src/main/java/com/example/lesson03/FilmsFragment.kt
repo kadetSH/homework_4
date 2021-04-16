@@ -14,7 +14,7 @@ import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_films_list.*
-
+import kotlin.properties.Delegates
 
 class FilmsFragment : Fragment() {
 
@@ -25,8 +25,10 @@ class FilmsFragment : Fragment() {
     private lateinit var starAnim: Animation
     private var firstStart = false
 
+    private var favoritesBoolTest by Delegates.notNull<Int>()
+
     var filmsBool: Boolean = true
-    var favoritesBool: Boolean = false
+    private var favoritesBool: Boolean = false
     var reminderBool: Boolean = false
 
 
@@ -75,7 +77,9 @@ class FilmsFragment : Fragment() {
         })
 
         viewModel.readAllData.observe(viewLifecycleOwner, Observer<List<RFilm>> {
-            if (!firstStart) firstStart = true
+            if (!firstStart) {
+                firstStart = true
+            }
             else {
                 listRoom.clear()
                 it.forEach {
@@ -87,8 +91,6 @@ class FilmsFragment : Fragment() {
                 if (filmsBool) {
                     adapter.setItems(listRoom)
                     favoritesBool = false
-                } else {
-
                 }
             }
         })
@@ -100,7 +102,8 @@ class FilmsFragment : Fragment() {
                 like = it.like != 0
                 listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm, it.reminder, it.reminderDataTime))
             }
-            if (favoritesBool) {
+
+            if (viewModel.favoritesPage) {  //favoritesBool
                 adapter.setItems(listLike)
             }
         })
@@ -152,7 +155,7 @@ class FilmsFragment : Fragment() {
         })
 
         viewModel.snackbarString.observe(viewLifecycleOwner, Observer<String> {
-            var strArr = it.split("%")
+            val strArr = it.split("%")
             val lik = strArr[0].toInt()
             val imagePath = strArr[1]
             val name = strArr[2]
@@ -170,7 +173,6 @@ class FilmsFragment : Fragment() {
 
         recyclerView!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                var fgfg = layoutManager.findLastVisibleItemPosition()
                 viewModel.addList(layoutManager.findLastVisibleItemPosition())
             }
         })

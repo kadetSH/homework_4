@@ -1,14 +1,20 @@
 package com.example.lesson03.viewmodel
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.*
+import androidx.work.WorkManager
+import com.example.lesson03.App
+import com.example.lesson03.FilmsDescriptionFragment
+import com.example.lesson03.R
+import com.example.lesson03.ReminderFragment
 import com.example.lesson03.jsonMy.FilmsJS
 import com.example.lesson03.jsonMy.Themoviedb
-import com.example.lesson03.App
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
@@ -25,11 +31,21 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     val readAllLike: LiveData<List<RFilm>>
     val readAllReminder: LiveData<List<RFilm>>
 
-    var readLikeBool = MutableLiveData<Boolean>()
-    var readFilmsBool = MutableLiveData<Boolean>()
-    var readReminderBool = MutableLiveData<Boolean>()
+    private var readLikeBoolMutable = MutableLiveData<Boolean>()
+    val readLikeBool: LiveData<Boolean>
+        get() = readLikeBoolMutable
+
+    private var readFilmsBoolMutable = MutableLiveData<Boolean>()
+    val readFilmsBool: LiveData<Boolean>
+    get() = readFilmsBoolMutable
+
+    private var readReminderBoolMutable = MutableLiveData<Boolean>()
+    val readReminderBool: LiveData<Boolean>
+    get() = readReminderBoolMutable
+
     var snackbarString = MutableLiveData<String>()
     var addListFilm = false
+    var favoritesPage : Boolean = false
 
     private val repository: FilmRepository
 
@@ -117,12 +133,12 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                 ) {
                     items.clear()
                     if (response.isSuccessful) {
-
+                        viewModelScope.launch(Dispatchers.Main) {
                         response.body()
                             ?.getResults()?.forEach {
 
-                                viewModelScope.launch(Dispatchers.IO) {
-                                    var searchFilm: List<RFilm> =
+//                                viewModelScope.launch(Dispatchers.IO) {
+                                    val searchFilm: List<RFilm> =
                                         repository.checkFilm(it?.getIdFilm() as Int)
 
                                     if (searchFilm.isNotEmpty()) {
@@ -164,11 +180,12 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                                         items.add(it2)
                                     }
                                 }
+                            page += 1
+                            updateList()
+                            addListFilm = false
+                            animBool.value = false
                             }
-                        page += 1
-                        updateList()
-                        addListFilm = false
-                        animBool.value = false
+
                     } else {
                         println("")
                     }
@@ -181,21 +198,42 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun selectLikeList() {
-        readLikeBool.postValue(true)
-        readFilmsBool.postValue(false)
-        readReminderBool.postValue(false)
+        favoritesPage = true
+        readLikeBoolMutable.postValue(true)
+        readFilmsBoolMutable.postValue(false)
+        readReminderBoolMutable.postValue(false)
+    }
+
+    fun exitAlertDialog(context: Context, activity: Activity){
+        val bld: AlertDialog.Builder = AlertDialog.Builder(context)
+        val clickCancell = DialogInterface.OnClickListener { dialog,
+                                                             which ->
+            dialog.dismiss()
+        }
+
+        val clickExit = DialogInterface.OnClickListener { dialog,
+                                                          which ->
+            activity.finish()
+        }
+        bld.setMessage("Выйти из приложения?")
+        bld.setTitle("Привет!")
+        bld.setNegativeButton("Нет", clickCancell)
+        bld.setPositiveButton("Да", clickExit)
+        val dialog: AlertDialog = bld.create()
+        dialog.show()
     }
 
     fun selectFilmsList() {
-        readFilmsBool.postValue(true)
-        readLikeBool.postValue(false)
-        readReminderBool.postValue(false)
+        favoritesPage = false
+        readFilmsBoolMutable.postValue(true)
+        readLikeBoolMutable.postValue( false)
+        readReminderBoolMutable.postValue(false)
     }
 
     fun selectReminderList(){
-        readFilmsBool.postValue(false)
-        readLikeBool.postValue(false)
-        readReminderBool.postValue(true)
+        readFilmsBoolMutable.postValue(false)
+        readLikeBoolMutable.postValue( false)
+        readReminderBoolMutable.postValue(true)
     }
 
 
@@ -218,7 +256,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun addList(pos: Int) {
-        var ff = reposLiveData.value
+        val ff = reposLiveData.value
 
         ff?.let {
             if (it.size.minus(pos) == 6) {
@@ -273,7 +311,46 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    fun fillArrays(
+    fun FilmLikeEvent(filmsItem: FilmsItem, position: Int, note: String, context: Context){
+        if (note.equals("star")) {
+            val lik: Int
+            if (filmsItem.star == false) lik = 1
+            else lik = 0
+            updateLike(lik, filmsItem.imageFilm)
+            snackbarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
+        } else if (note.equals("description")) {
+            openDescriptions(filmsItem, context)
+        } else if (note.equals("dellIcon")) {
+            dellFilm(filmsItem, position, context)
+        } else if (note.equals("reminder")) {
+            if (filmsItem.reminder == 0) {
+                openReminderAdd(filmsItem, context)
+            } else if (filmsItem.reminder == 1) {
+                updateReminder(0, filmsItem.imageFilm, "")
+                WorkManager.getInstance().cancelAllWorkByTag(filmsItem.imageFilm)
+            }
+        } else if (note.equals("reminderDataTime")) {
+            println("")
+        }
+    }
+
+    private fun openDescriptions(spisokItem: FilmsItem, context: Context) {
+        (context as AppCompatActivity).supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.fragmentContainer, FilmsDescriptionFragment.newInstance(spisokItem))
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun openReminderAdd(spisokItem: FilmsItem, context: Context) {
+        (context as AppCompatActivity).supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.fragmentContainer, ReminderFragment.newInstance(spisokItem))
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun fillArrays(
         titleArray: Array<String>,
         filmImageArray: Array<String>,
         descriptionArray: Array<String>,
@@ -281,14 +358,14 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         reminderArray: Array<Int>,
         reminderDataTime: Array<String>
     ): List<FilmsItem> {
-        var list = ArrayList<FilmsItem>()
+        val list = ArrayList<FilmsItem>()
         for (i in 0..titleArray.size - 1) {
             var shortDescription = descriptionArray[i]
             var proverka = ""
             if (titleArray[i].equals(filmP)) {
                 proverka = filmP
             }
-            var idxFav = favoriteName.indexOf(titleArray[i])
+            val idxFav = favoriteName.indexOf(titleArray[i])
             var boolFavorite: Boolean
 
             if (idxFav == -1) {
@@ -301,7 +378,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
                 shortDescription = shortDescription.substring(0, 120) + "..."
             }
 
-            var spisokItem = FilmsItem(
+            val spisokItem = FilmsItem(
                 titleArray[i],
                 filmImageArray[i],
                 shortDescription,
