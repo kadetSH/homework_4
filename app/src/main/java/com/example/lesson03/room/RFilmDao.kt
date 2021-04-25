@@ -39,4 +39,13 @@ interface RFilmDao {
 
     @Query("UPDATE films_table SET reminderDataTime = :reminderDataTime, reminder = :reminder WHERE imagePath = :imagePath")
     suspend fun updateReminder(reminder : Int, imagePath : String, reminderDataTime: String)
+
+    @Query("SELECT * FROM films_table ORDER BY id ASC LIMIT :countLimit")
+    fun selectAllFilms(countLimit: Int) : List<RFilm>
+
+    @Query("SELECT * FROM films_table WHERE `like` = 1 ORDER BY id ASC")
+    fun selectAllFavorites() : List<RFilm>
+
+    @Query("SELECT * FROM films_table WHERE reminder = 1 ORDER BY id ASC")
+    fun selectAllReminders() : List<RFilm>
 }

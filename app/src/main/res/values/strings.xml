@@ -22,5 +22,8 @@
     <string name="reminderTime" translatable="false">Время</string>
     <string name="reminderSave" translatable="false">Сохранить</string>
     <string name="reminderCancell" translatable="false">Отменить</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="title0" translatable="false">- выбор раздела просмотра</string>
 
 </resources>

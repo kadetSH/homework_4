@@ -35,7 +35,24 @@ class FilmRepository(private val filmDao : RFilmDao) {
     }
 
     suspend fun updateReminder(lik: Int, imagePath: String, reminderDataTime: String){
-        filmDao.updateReminder(lik, imagePath, reminderDataTime)
+       if (!reminderDataTime.equals("") && (lik==1)) {
+           filmDao.updateReminder(lik, imagePath, reminderDataTime)
+       }else if (reminderDataTime.equals("") && (lik==0)){
+           filmDao.updateReminder(lik, imagePath, reminderDataTime)
+       }
     }
+
+    fun selectAllFilms(countLimit: Int) : List<RFilm> {
+        return filmDao.selectAllFilms(countLimit)
+    }
+
+    fun selectAllFavoritesFilms() : List<RFilm> {
+        return filmDao.selectAllFavorites()
+    }
+
+    fun selectAllRemindersFilms() : List<RFilm> {
+        return filmDao.selectAllReminders()
+    }
+
 
 }

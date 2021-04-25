@@ -1,22 +1,29 @@
-package com.example.lesson03
+package com.example.lesson03.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.view.animation.Animation
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_films_list.*
-import kotlin.properties.Delegates
 
 class FilmsFragment : Fragment() {
+
+    companion object {
+        const val TAG = "ProverkaTAG"
+    }
 
     var list = ArrayList<FilmsItem>()
     var listRoom = ArrayList<FilmsItem>()
@@ -24,24 +31,30 @@ class FilmsFragment : Fragment() {
     var listReminder = ArrayList<FilmsItem>()
     private lateinit var starAnim: Animation
     private var firstStart = false
-
-    private var favoritesBoolTest by Delegates.notNull<Int>()
-
     var filmsBool: Boolean = true
     private var favoritesBool: Boolean = false
     var reminderBool: Boolean = false
-
 
     private val viewModel by lazy {
         ViewModelProvider(requireActivity()).get(RepoListFilmsViewModel::class.java)
     }
 
+    private val fabIcon by lazy {
+        requireActivity().findViewById(R.id.fab) as FloatingActionButton
+
+    }
+
+
     private var recyclerView: RecyclerView? = null
     private val adapter by lazy {
-        FilmsAdapter(LayoutInflater.from(requireContext()),
+        FilmsAdapter(
+            LayoutInflater.from(requireContext()),
             list
         ) { filmsItem: FilmsItem, position: Int, note: String ->
             (activity as? OnFilmLikeClickListener)?.onFilmLikeClick(filmsItem, position, note)
+            context?.let {
+                viewModel.filmLikeEvent(filmsItem, position, note, it)
+            }
         }
     }
 
@@ -52,8 +65,13 @@ class FilmsFragment : Fragment() {
     //Snackbar
     var snackbar: Snackbar? = null
     lateinit var listenerSnackbar: View.OnClickListener
-    /////
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate $this")
+        retainInstance = true
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,59 +81,88 @@ class FilmsFragment : Fragment() {
         starAnim =
             android.view.animation.AnimationUtils.loadAnimation(this.context, R.anim.scale_star)
         return inflater.inflate(R.layout.fragment_films_list, container, false)
+        Log.d(TAG, "onCreateView")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
+        Log.d(TAG, "onViewCreated")
         initRecycler()
         observeViewModel()
+        viewModel.firstStart()
+        fabIcon.setOnClickListener {
+            viewModel.downloadsList()
+        }
     }
 
-    private fun observeViewModel(){
+    override fun onDetach() {
+        super.onDetach()
+        Log.d(TAG, "onDetach")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+    }
+
+    private fun observeViewModel() {
         viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
             adapter.setItems(it)
+        })
+
+        viewModel.fabLiveData.observe(viewLifecycleOwner, Observer<Boolean> {
+            fabIcon?.isVisible = it
         })
 
         viewModel.readAllData.observe(viewLifecycleOwner, Observer<List<RFilm>> {
             if (!firstStart) {
                 firstStart = true
-            }
-            else {
+            } else {
                 listRoom.clear()
                 it.forEach {
                     val like: Boolean
+
                     if (it.like == 0) like = false
                     else like = true
-                    listRoom.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm, it.reminder, it.reminderDataTime))
+
+                    listRoom.add(
+                        FilmsItem(
+                            it.name,
+                            it.imagePath,
+                            it.description,
+                            "",
+                            like,
+                            it.idFilm,
+                            it.reminder,
+                            it.reminderDataTime
+                        )
+                    )
                 }
                 if (filmsBool) {
-                    adapter.setItems(listRoom)
+//                    adapter.setItems(listRoom)
                     favoritesBool = false
                 }
             }
         })
 
-        viewModel.readAllLike.observe(viewLifecycleOwner, Observer<List<RFilm>> {
-            listLike.clear()
+        viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>> {
+            listReminder.clear()
             it.forEach {
                 val like: Boolean
                 like = it.like != 0
-                listLike.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm, it.reminder, it.reminderDataTime))
+                listReminder.add(
+                    FilmsItem(
+                        it.name,
+                        it.imagePath,
+                        it.description,
+                        "",
+                        like,
+                        it.idFilm,
+                        it.reminder,
+                        it.reminderDataTime
+                    )
+                )
             }
-
-            if (viewModel.favoritesPage) {  //favoritesBool
-                adapter.setItems(listLike)
-            }
-        })
-
-        viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>>{
-            listReminder.clear()
-                it.forEach {
-                    val like: Boolean
-                    like = it.like != 0
-                    listReminder.add(FilmsItem(it.name, it.imagePath, it.description, "", like, it.idFilm, it.reminder, it.reminderDataTime))
-                }
-            if (reminderBool){
+            if (reminderBool) {
                 adapter.setItems(listReminder)
             }
         })
@@ -166,14 +213,13 @@ class FilmsFragment : Fragment() {
 
     private fun initRecycler() {
         val layoutManager = LinearLayoutManager(context)
-        recyclerView = view!!.findViewById(R.id.id_recyclerView)
-        recyclerView!!.layoutManager = layoutManager
+        recyclerView = view?.findViewById(R.id.id_recyclerView)
+        recyclerView?.layoutManager = layoutManager
         recyclerView?.addItemDecoration(Decor(22))
-        recyclerView!!.adapter = adapter
-
+        recyclerView?.adapter = adapter
         recyclerView!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                viewModel.addList(layoutManager.findLastVisibleItemPosition())
+                viewModel.addList(layoutManager.findLastVisibleItemPosition(), adapter.itemCount)
             }
         })
     }
@@ -201,7 +247,6 @@ class FilmsFragment : Fragment() {
             Snackbar.make(load_anim, "$name - удалили из избранного", Snackbar.LENGTH_INDEFINITE)
         if (lik == -1) snackbar =
             Snackbar.make(load_anim, "Нет связи с сервером", Snackbar.LENGTH_INDEFINITE)
-
         if (lik == 1 or 0) {
             snackbar?.setAction("Отменить", listenerSnackbar)
         }
@@ -214,15 +259,12 @@ class FilmsFragment : Fragment() {
             fab?.postDelayed({
                 snackbar?.dismiss()
             }, 3000)
-        }else{
+        } else {
             fab?.postDelayed({
                 snackbar?.dismiss()
             }, 40000)
         }
-
-
     }
     //------------------------
-
 
 }

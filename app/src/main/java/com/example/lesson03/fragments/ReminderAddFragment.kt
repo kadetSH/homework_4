@@ -1,4 +1,4 @@
-package com.example.lesson03
+package com.example.lesson03.fragments
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -13,28 +13,25 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import com.example.lesson03.R
+import com.example.lesson03.UploadWorker
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class ReminderFragment : Fragment() {
+class ReminderAddFragment : Fragment() {
 
     companion object {
 
-        fun newInstance(list: FilmsItem): ReminderFragment {
+        fun newInstance(list: FilmsItem): ReminderAddFragment {
             val args = Bundle()
             args.putSerializable("spisokReminder", list)
-
-            val fragment = ReminderFragment()
+            val fragment = ReminderAddFragment()
             fragment.arguments = args
             return fragment
         }
-
     }
 
     private val viewModel by lazy {
@@ -126,15 +123,14 @@ class ReminderFragment : Fragment() {
         }
 
         var dayTimeNumber: Long = 0
-
-        var formatDate = SimpleDateFormat()
+        val formatDate = SimpleDateFormat()
         formatDate.applyPattern("dd.MM.yyyy")
-        var isDate = formatDate.parse(showReminderDate.text.toString())
+        val isDate = formatDate.parse(showReminderDate.text.toString())
         dayTimeNumber = dayTimeNumber + isDate.time
 
-        var formatTime = SimpleDateFormat()
+        val formatTime = SimpleDateFormat()
         formatTime.applyPattern("hh:mm")
-        var isTime = formatTime.parse(showReminderTime.text.toString())
+        val isTime = formatTime.parse(showReminderTime.text.toString())
         dayTimeNumber = dayTimeNumber + isTime.time
 
         val realTime = Date()
@@ -149,8 +145,14 @@ class ReminderFragment : Fragment() {
             val reminderTime = dayTimeNumber - realTimeNumber
             list?.let {
                 viewModel.updateReminder(1, it.imageFilm, strDataTime)
+                workManagetReminder(
+                    it.nameFilm,
+                    it.imageFilm,
+                    it.shortDescription,
+                    reminderTime,
+                    it.idFilm
+                )
                 activity?.onBackPressed()
-                workManagetReminder(it.nameFilm, it.imageFilm, it.shortDescription, reminderTime, it.idFilm)
             }
         } else {
             selectToast("Время напоминания не может быть меньше текущего времени")
@@ -158,8 +160,14 @@ class ReminderFragment : Fragment() {
         }
     }
 
-    private fun workManagetReminder(nameFilm: String, tag: String, descriptionFilm: String, timeReminder : Long, idFilm: Int){
-        var myData : Data = Data.Builder()
+    private fun workManagetReminder(
+        nameFilm: String,
+        tag: String,
+        descriptionFilm: String,
+        timeReminder: Long,
+        idFilm: Int
+    ) {
+        val myData: Data = Data.Builder()
             .putString("nameFilm", nameFilm)
             .putString("descriptionFilm", descriptionFilm)
             .putString("imagePath", tag)
@@ -169,7 +177,7 @@ class ReminderFragment : Fragment() {
 
         val myWorkRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)
             .addTag(tag)
-            .setInitialDelay(8000, TimeUnit.MILLISECONDS) //timeReminder
+            .setInitialDelay(timeReminder, TimeUnit.MILLISECONDS) //timeReminder
             .setInputData(myData)
             .build()
         WorkManager.getInstance().enqueue(myWorkRequest)

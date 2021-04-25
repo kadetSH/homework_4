@@ -67,8 +67,9 @@ data class Result(
         return title!!
     }
 
-    fun getBackdropPath(): Any {
-        return backdropPath!!
+    fun getBackdropPath(): String? {
+
+        return backdropPath
     }
 
     fun getOverview(): Any {
