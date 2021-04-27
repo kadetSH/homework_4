@@ -48,6 +48,7 @@ class FavoritesFragment : Fragment() {
         super.onCreate(savedInstanceState)
         Log.d(TAGfavorites, "фавориты - onCreate $this")
         retainInstance = true
+
     }
 
     override fun onCreateView(
@@ -82,11 +83,10 @@ class FavoritesFragment : Fragment() {
             adapter.setItems(it)
         })
 
-        viewModel.readAllLike.observe(viewLifecycleOwner, Observer<List<RFilm>> {
+        viewModel.readAllLike.observe(viewLifecycleOwner, Observer<List<RFilm>> {il ->
             listLike.clear()
-            it.forEach {
-                val like: Boolean
-                like = it.like != 0
+            il.forEach {
+                val like: Boolean = it.like != 0
                 listLike.add(
                     FilmsItem(
                         it.name,

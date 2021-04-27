@@ -58,7 +58,7 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
         return Result.success()
     }
 
-    fun message(
+    private fun message(
         nameFilm: String,
         descriptionFilm: String,
         imagePath: String,

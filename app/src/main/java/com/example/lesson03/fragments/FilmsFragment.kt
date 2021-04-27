@@ -26,6 +26,7 @@ class FilmsFragment : Fragment() {
     }
 
     var list = ArrayList<FilmsItem>()
+    var arrayList = ArrayList<FilmsItem>()
     var listRoom = ArrayList<FilmsItem>()
     var listLike = ArrayList<FilmsItem>()
     var listReminder = ArrayList<FilmsItem>()
@@ -34,6 +35,7 @@ class FilmsFragment : Fragment() {
     var filmsBool: Boolean = true
     private var favoritesBool: Boolean = false
     var reminderBool: Boolean = false
+
 
     private val viewModel by lazy {
         ViewModelProvider(requireActivity()).get(RepoListFilmsViewModel::class.java)
@@ -58,8 +60,8 @@ class FilmsFragment : Fragment() {
         }
     }
 
-    val animIc by lazy {
-        load_anim //.findViewById<RecyclerView>(R.id.load_anim)
+    private val animIc by lazy {
+        load_anim
     }
 
     //Snackbar
@@ -106,23 +108,28 @@ class FilmsFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
-            adapter.setItems(it)
+            arrayList = it
+            adapter.setItems(arrayList)
         })
 
         viewModel.fabLiveData.observe(viewLifecycleOwner, Observer<Boolean> {
             fabIcon?.isVisible = it
         })
 
-        viewModel.readAllData.observe(viewLifecycleOwner, Observer<List<RFilm>> {
+        viewModel.readAllLike.observe(viewLifecycleOwner, Observer<List<RFilm>> {
+            if (recyclerView?.adapter?.itemCount!! > 0){
+                viewModel.updateLisNew()
+            }
+        })
+
+        viewModel.readAllData.observe(viewLifecycleOwner, Observer<List<RFilm>> {it0 ->
             if (!firstStart) {
                 firstStart = true
             } else {
                 listRoom.clear()
-                it.forEach {
-                    val like: Boolean
+                it0.forEach {
 
-                    if (it.like == 0) like = false
-                    else like = true
+                    val like: Boolean = it.like != 0
 
                     listRoom.add(
                         FilmsItem(
@@ -144,11 +151,10 @@ class FilmsFragment : Fragment() {
             }
         })
 
-        viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>> {
+        viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>> {it0 ->
             listReminder.clear()
-            it.forEach {
-                val like: Boolean
-                like = it.like != 0
+            it0.forEach {
+                val like: Boolean = it.like != 0
                 listReminder.add(
                     FilmsItem(
                         it.name,
@@ -229,24 +235,28 @@ class FilmsFragment : Fragment() {
     }
 
     //snackbar ----------------------
-    fun snackbarShow(lik: Int, imagePath: String, name: String, note: String) {
+    private fun snackbarShow(lik: Int, imagePath: String, name: String, note: String) {
         listenerSnackbar = View.OnClickListener {
 
-            if (lik == 1) {
-                viewModel.updateLike(0, imagePath)
-            } else if (lik == 0) {
-                viewModel.updateLike(1, imagePath)
-            } else if (lik == -1) {
-                viewModel.openFilmLis()
+            when (lik) {
+                1 -> {
+                    viewModel.updateLike(0, imagePath)
+                }
+                0 -> {
+                    viewModel.updateLike(1, imagePath)
+                }
+                -1 -> {
+                    viewModel.openFilmLis()
+                }
             }
         }
 
         if (lik == 1) snackbar =
-            Snackbar.make(load_anim, "$name - добавили в избранное", Snackbar.LENGTH_INDEFINITE)
+            Snackbar.make(load_anim, "$name - добавили в избранное", Snackbar.LENGTH_SHORT)
         if (lik == 0) snackbar =
-            Snackbar.make(load_anim, "$name - удалили из избранного", Snackbar.LENGTH_INDEFINITE)
+            Snackbar.make(load_anim, "$name - удалили из избранного", Snackbar.LENGTH_SHORT)
         if (lik == -1) snackbar =
-            Snackbar.make(load_anim, "Нет связи с сервером", Snackbar.LENGTH_INDEFINITE)
+            Snackbar.make(load_anim, "Нет связи с сервером", Snackbar.LENGTH_SHORT)
         if (lik == 1 or 0) {
             snackbar?.setAction("Отменить", listenerSnackbar)
         }

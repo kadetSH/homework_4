@@ -23,8 +23,8 @@ import java.util.concurrent.TimeUnit
 class MessagingService : FirebaseMessagingService() {
 
     private val TAG = "FirebaseMessageService"
-    val API_KEY = "2931998c3a80d7806199320f76d65298"
-    val langRu = "ru-Ru"
+    private val API_KEY = "2931998c3a80d7806199320f76d65298"
+    private val langRu = "ru-Ru"
 
 
     override fun onCreate() {
@@ -41,7 +41,7 @@ class MessagingService : FirebaseMessagingService() {
 
     }
 
-    fun getFilm(id: Int) {
+    private fun getFilm(id: Int) {
         App.instance.api.getFilmsMessage(id, API_KEY, langRu)
             .enqueue(object : Callback<Json4Kotlin_Base> {
                 override fun onFailure(call: Call<Json4Kotlin_Base>, t: Throwable) {

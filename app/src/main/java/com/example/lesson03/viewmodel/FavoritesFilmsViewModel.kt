@@ -79,7 +79,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
     }
 
     //Обновляет список фильмов и вставляет в MutableLiveData
-    fun updateList() {
+    private fun updateList() {
         list.clear()
         items.forEach { itF ->
             list.addAll(
@@ -108,7 +108,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
         likeFilmArray: Array<Int>,
     ): List<FilmsItem> {
         val list = ArrayList<FilmsItem>()
-        for (i in 0..titleArray.size - 1) {
+        for (i in titleArray.indices) {
             var shortDescription = descriptionArray[i]
             var proverka = ""
             if (titleArray[i].equals(filmP)) {
@@ -117,11 +117,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
 
             var boolFavorite: Boolean
             val like = likeFilmArray[i]
-            if (like == 0) {
-                boolFavorite = false
-            } else {
-                boolFavorite = true
-            }
+            boolFavorite = like != 0
 
             if (shortDescription.length > 120) {
                 shortDescription = shortDescription.substring(0, 120) + "..."
@@ -165,14 +161,14 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
     }
 
     //Обновление лайка фильма: добавление/удаление в/из избранного
-    fun updateLike(lik: Int, imagePath: String) {
+    private fun updateLike(lik: Int, imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateLike(lik, imagePath)
         }
     }
 
     //Событие удаления фильма, вызывается диалоговое окно для подтверждения удаления
-    fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
+    private fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
         val lst =
             DialogInterface.OnClickListener { dialog, which ->
@@ -190,7 +186,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
     }
 
     //Удаляем фильм из списка.
-    fun dellSelectedFilm(imagePath: String) {
+    private fun dellSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.delleteFilm(imagePath)
         }
@@ -214,7 +210,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
             .commit()
     }
 
-    fun updateReminder(reminder: Int, imagePath: String, reminderDataTime: String) {
+    private fun updateReminder(reminder: Int, imagePath: String, reminderDataTime: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateReminder(reminder, imagePath, reminderDataTime)
         }

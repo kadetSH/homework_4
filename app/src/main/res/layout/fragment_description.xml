@@ -9,7 +9,8 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
-        android:layout_height="450dp">
+        android:layout_height="450dp"
+        android:layout_marginTop="60dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             app:toolbarId="@+id/collapsing_toolbar"

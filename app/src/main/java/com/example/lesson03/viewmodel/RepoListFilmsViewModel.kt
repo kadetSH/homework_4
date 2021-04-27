@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import com.example.lesson03.App
 import com.example.lesson03.fragments.FilmsDescriptionFragment
 import com.example.lesson03.R
+import com.example.lesson03.SingleLiveEvent
 import com.example.lesson03.fragments.ReminderAddFragment
 import com.example.lesson03.jsonMy.FilmsJS
 import com.example.lesson03.jsonMy.Themoviedb
@@ -41,17 +42,18 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     val readReminderBool: LiveData<Boolean>
         get() = readReminderBoolMutable
 
-    var snackbarString = MutableLiveData<String>()
+    val readAllLike: LiveData<List<RFilm>>
+
+    var snackbarString = SingleLiveEvent<String>()
+
     var addListFilm = false
-    var favoritesPage: Boolean = false
-
-
     private val repository: FilmRepository
 
     init {
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
 //        delAll()
+        readAllLike = repository.readAllLike
         readAllData = repository.readAllData
         readAllReminder = repository.readAllReminder
     }
@@ -70,7 +72,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         get() = fabMutableLiveData
 
 
-            private var page = 1
+    private var page = 1
     val API_KEY = "2931998c3a80d7806199320f76d65298"
     val langRu = "ru-Ru"
     var firstStart: Boolean = false
@@ -92,24 +94,38 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         } else {
             //Загрузка из Room
             viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    selectListIsRoom(20 * (page - 1))
+                } catch (ex: java.lang.Exception) {
+
+                }
+            }
+        }
+    }
+
+    fun updateLisNew() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
                 selectListIsRoom(20 * (page - 1))
+            } catch (ex: java.lang.Exception) {
+
             }
         }
     }
 
     //Событие при нажатии элемент списка фильмов
     fun filmLikeEvent(filmsItem: FilmsItem, position: Int, note: String, context: Context) {
-        if (note.equals("star")) {
+        if (note == "star") {
             val lik: Int
-            if (filmsItem.star == false) lik = 1
+            if (!filmsItem.star) lik = 1
             else lik = 0
             updateLike(lik, filmsItem.imageFilm)
             snackbarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
-        } else if (note.equals("description")) {
+        } else if (note == "description") {
             openDescriptions(filmsItem, context)
-        } else if (note.equals("dellIcon")) {
+        } else if (note == "dellIcon") {
             dellFilm(filmsItem, position, context)
-        } else if (note.equals("reminder")) {
+        } else if (note == "reminder") {
             if (filmsItem.reminder == 0) {
                 openReminderAdd(filmsItem, context)
             } else if (filmsItem.reminder == 1) {
@@ -270,9 +286,9 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     //Обновляет список фильмов и вставляет в MutableLiveData
-    fun updateList() {
+    private suspend fun updateList() {
+        list.clear()
         items.forEach { itF ->
-
             list.addAll(
                 fillArrays(
                     arrayOf(itF.title),
@@ -299,7 +315,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
         likeFilmArray: Array<Int>,
     ): List<FilmsItem> {
         val list = ArrayList<FilmsItem>()
-        for (i in 0..titleArray.size - 1) {
+        for (i in titleArray.indices) {
             var shortDescription = descriptionArray[i]
             var proverka = ""
             if (titleArray[i].equals(filmP)) {
@@ -308,11 +324,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
             var boolFavorite: Boolean
             val like = likeFilmArray[i]
-            if (like == 0) {
-                boolFavorite = false
-            } else {
-                boolFavorite = true
-            }
+            boolFavorite = like != 0
 
             if (shortDescription.length > 120) {
                 shortDescription = shortDescription.substring(0, 120) + "..."
@@ -337,7 +349,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     //Если до конца списка 6 элементов то грузятся новые
     fun addList(pos: Int, countAdapter: Int) {
         if (countAdapter.minus(pos) == 6) {
-            if (addListFilm == false) {
+            if (!addListFilm) {
                 openFilmLis()
                 addListFilm = true
             }
@@ -352,7 +364,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     //Событие удаления фильма, вызывается диалоговое окно для подтверждения удаления
-    fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
+    private fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
         val lst =
             DialogInterface.OnClickListener { dialog, which ->
@@ -370,7 +382,7 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     //Удаляем фильм из списка.
-    fun dellSelectedFilm(imagePath: String) {
+    private fun dellSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.delleteFilm(imagePath)
         }
@@ -395,3 +407,4 @@ class RepoListFilmsViewModel(application: Application) : AndroidViewModel(applic
 
 
 }
+

@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import com.example.lesson03.R
-import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.squareup.picasso.Picasso
 
@@ -27,9 +26,9 @@ class FilmsDescriptionFragment : Fragment() {
         }
     }
 
-    val url = "https://themoviedb.org/t/p/"
-    val api_key = "2931998c3a80d7806199320f76d65298"
-    val lang = "ru-Ru"
+    private val url = "https://themoviedb.org/t/p/"
+    private val api_key = "2931998c3a80d7806199320f76d65298"
+    private val lang = "ru-Ru"
     var list: FilmsItem? = null
 
     override fun onCreateView(
@@ -69,9 +68,8 @@ class FilmsDescriptionFragment : Fragment() {
 
     }
 
-    fun getImagePath(name: String): String {
-        val puth = "${url}w500${name}?api_key=${api_key}&language=${lang}"
-        return puth
+    private fun getImagePath(name: String): String {
+        return "${url}w500${name}?api_key=$api_key&language=$lang"
     }
 
 }

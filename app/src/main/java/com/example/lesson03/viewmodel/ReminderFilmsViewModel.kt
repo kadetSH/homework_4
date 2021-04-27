@@ -24,12 +24,12 @@ import kotlinx.coroutines.launch
 class ReminderFilmsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val items = mutableListOf<FilmsJS>()
-    val readAllReminder: LiveData<List<RFilm>>
+    private val readAllReminder: LiveData<List<RFilm>>
     private val repository: FilmRepository
     private var list = ArrayList<FilmsItem>()
     private var filmP: String = ""
     private var snackbarString = MutableLiveData<String>()
-    val readAllLike: LiveData<List<RFilm>>
+    private val readAllLike: LiveData<List<RFilm>>
     private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
     val repos: LiveData<ArrayList<FilmsItem>>
         get() = reposLiveData
@@ -51,7 +51,7 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     //Загрузка списка фильмов из рума
-    suspend fun downloadsList() {
+    private suspend fun downloadsList() {
         items.clear()
         val searchFilm: List<RFilm> = repository.selectAllRemindersFilms()
         if (searchFilm.isNotEmpty()) {
@@ -73,7 +73,7 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     //Обновляет список фильмов и вставляет в MutableLiveData
-    fun updateList() {
+    private fun updateList() {
         list.clear()
         items.forEach { itF ->
             list.addAll(
@@ -110,11 +110,7 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
             }
             var boolFavorite: Boolean
             val like = likeFilmArray[i]
-            if (like == 0) {
-                boolFavorite = false
-            } else {
-                boolFavorite = true
-            }
+            boolFavorite = like != 0
 
             if (shortDescription.length > 120) {
                 shortDescription = shortDescription.substring(0, 120) + "..."
@@ -137,30 +133,30 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
 
     //Событие при нажатии элемент списка фильмов
     fun filmLikeEvent(filmsItem: FilmsItem, position: Int, note: String, context: Context) {
-        if (note.equals("star")) {
+        if (note == "star") {
             val lik: Int
-            if (filmsItem.star == false) lik = 1
+            if (!filmsItem.star) lik = 1
             else lik = 0
             updateLike(lik, filmsItem.imageFilm)
             snackbarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
-        } else if (note.equals("description")) {
+        } else if (note == "description") {
             openDescriptions(filmsItem, context)
-        } else if (note.equals("dellIcon")) {
+        } else if (note == "dellIcon") {
             dellFilm(filmsItem, position, context)
-        } else if (note.equals("reminder")) {
+        } else if (note == "reminder") {
             if (filmsItem.reminder == 0) {
                 openReminderAdd(filmsItem, context)
             } else if (filmsItem.reminder == 1) {
                 updateReminder(0, filmsItem.imageFilm, "")
                 WorkManager.getInstance().cancelAllWorkByTag(filmsItem.imageFilm)
             }
-        } else if (note.equals("reminderDataTime")) {
+        } else if (note == "reminderDataTime") {
             println("")
         }
     }
 
     //Обновление лайка фильма: добавление/удаление в/из избранного
-    fun updateLike(lik: Int, imagePath: String) {
+    private fun updateLike(lik: Int, imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateLike(lik, imagePath)
         }
@@ -176,7 +172,7 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     //Событие удаления фильма, вызывается диалоговое окно для подтверждения удаления
-    fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
+    private fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
         val lst =
             DialogInterface.OnClickListener { dialog, which ->
@@ -202,14 +198,14 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
             .commit()
     }
 
-    fun updateReminder(reminder: Int, imagePath: String, reminderDataTime: String) {
+    private fun updateReminder(reminder: Int, imagePath: String, reminderDataTime: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateReminder(reminder, imagePath, reminderDataTime)
         }
     }
 
     //Удаляем фильм из списка.
-    fun dellSelectedFilm(imagePath: String) {
+    private fun dellSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.delleteFilm(imagePath)
         }

@@ -27,8 +27,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -49,9 +47,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         //Слушаем нажатие в выпадающем меню
         id_navigation.setNavigationItemSelectedListener(this)
+
+        openListFilms()
     }
 
     private fun openListFilms() {
+        title = "Фильмы"
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.FrameLayoutContainer, FilmsFragment())
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun openListFavorites() {
+        title = "Фавориты"
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.FrameLayoutContainer, FavoritesFragment())
@@ -66,6 +68,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun openListReminder() {
+        title = "Посмотреть позже"
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.FrameLayoutContainer, ReminderListFragment())
@@ -100,7 +103,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    fun exitAlertDialog(context: Context, activity: Activity) {
+    private fun exitAlertDialog(context: Context, activity: Activity) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
         val clickCancell = DialogInterface.OnClickListener { dialog,
                                                              which ->

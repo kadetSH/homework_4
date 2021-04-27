@@ -54,7 +54,7 @@ class ReminderAddFragment : Fragment() {
         init(view)
     }
 
-    fun isData(context: Context) {
+    private fun isData(context: Context) {
         val listener =
             DatePickerDialog.OnDateSetListener { datePicker: DatePicker, year: Int, month: Int, day: Int ->
                 showReminderDate.setText("${day}.${month + 1}.${year}")
@@ -70,10 +70,18 @@ class ReminderAddFragment : Fragment() {
         dialog.show()
     }
 
-    fun isTime(context: Context) {
+    private fun isTime(context: Context) {
         val listener =
             TimePickerDialog.OnTimeSetListener { timePicker: TimePicker, hour: Int, minute: Int ->
-                showReminderTime.setText("${hour}:${minute + 1}")
+                var hourSTR = hour.toString()
+                if (hourSTR.length == 1) {
+                    hourSTR = "0$hourSTR"
+                }
+                var minuteSTR = minute.toString()
+                if (minuteSTR.length == 1) {
+                    minuteSTR = "0$minuteSTR"
+                }
+                showReminderTime.setText("${hourSTR}:${minuteSTR}") //("${hour}:${minute + 1}")
             }
         val newCalender = Calendar.getInstance()
         val startTime = TimePickerDialog(
@@ -87,7 +95,7 @@ class ReminderAddFragment : Fragment() {
     }
 
 
-    fun init(view: View) {
+    private fun init(view: View) {
         view.findViewById<Button>(R.id.idSelectData).setOnClickListener {
             this.context?.let { it1 -> isData(it1) }
         }
@@ -126,12 +134,12 @@ class ReminderAddFragment : Fragment() {
         val formatDate = SimpleDateFormat()
         formatDate.applyPattern("dd.MM.yyyy")
         val isDate = formatDate.parse(showReminderDate.text.toString())
-        dayTimeNumber = dayTimeNumber + isDate.time
+        dayTimeNumber += isDate.time
 
         val formatTime = SimpleDateFormat()
         formatTime.applyPattern("hh:mm")
         val isTime = formatTime.parse(showReminderTime.text.toString())
-        dayTimeNumber = dayTimeNumber + isTime.time
+        dayTimeNumber += isTime.time
 
         val realTime = Date()
         val realTimeNumber = realTime.time
