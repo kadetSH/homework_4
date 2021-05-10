@@ -2,8 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.lesson03">
     <uses-permission android:name="android.permission.INTERNET" />
+<!--//DaggerAppComponent-->
 
     <application
+
         android:name=".App"
         android:allowBackup="true"
         android:usesCleartextTraffic="true"

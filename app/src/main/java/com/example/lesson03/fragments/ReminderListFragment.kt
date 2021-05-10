@@ -1,11 +1,12 @@
 package com.example.lesson03.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,16 +16,23 @@ import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.viewmodel.ReminderFilmsViewModel
+import dagger.android.support.DaggerFragment
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class ReminderListFragment: Fragment() {
+class ReminderListFragment : DaggerFragment() {
 
     companion object {
         const val TAG = "ProverkaTAG"
     }
 
-    private val viewModel by lazy {
-        ViewModelProvider(requireActivity()).get(ReminderFilmsViewModel::class.java)
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    private val viewModel: ReminderFilmsViewModel by viewModels {
+        viewModelFactory
     }
+
     private var recyclerView: RecyclerView? = null
     var list = ArrayList<FilmsItem>()
     private val adapter by lazy {
@@ -39,7 +47,7 @@ class ReminderListFragment: Fragment() {
         }
     }
 
-
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "ReminderFragment - onCreate $this")
@@ -62,10 +70,21 @@ class ReminderListFragment: Fragment() {
         observeViewModel()
     }
 
+    @SuppressLint("CheckResult")
     private fun observeViewModel() {
-        viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
-            adapter.setItems(it)
-        })
+
+        //RxJava
+        viewModel.repos1
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                result.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
+                    adapter.setItems(it)
+                })
+            }, { error ->
+
+            })
+        ////////RxJava
     }
 
     private fun initRecycler(view: View) {

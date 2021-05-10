@@ -1,28 +1,35 @@
 package com.example.lesson03
 
 import android.app.Application
+import com.example.lesson03.dagger.DaggerAppComponent
 import com.example.lesson03.net.Api
+import dagger.android.AndroidInjector
+import dagger.android.DaggerApplication
 import okhttp3.CipherSuite
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.TlsVersion
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-class App : Application() {
+class App :  DaggerApplication() {
 
     lateinit var api: Api
 
     override fun onCreate() {
         super.onCreate()
         instance = this
-
         initRetrofit()
     }
+
+    //Dagger 2
+    private val applicationInjector = DaggerAppComponent.builder().application(this).build()
+    override fun applicationInjector(): AndroidInjector<out DaggerApplication> = applicationInjector
 
     private fun initRetrofit() {
 
@@ -63,6 +70,7 @@ class App : Application() {
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .client(client)
             .build()
 
@@ -71,8 +79,7 @@ class App : Application() {
     }
 
     companion object {
-        const val BASE_URL =
-            "https://api.themoviedb.org/3/" //99.86.242.109  api.themoviedb.org  //100?api_key=576c50d1b23a4e5c26962aa1196de8f3
+        const val BASE_URL = "https://api.themoviedb.org/3/"
 
         lateinit var instance: App
             private set

@@ -3,10 +3,7 @@ package com.example.lesson03.jsonMy
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-
-
-
-class Themoviedb {
+class TheMovieDB {
 
     @SerializedName("page")
     @Expose
@@ -32,7 +29,7 @@ class Themoviedb {
         this.page = page
     }
 
-    fun withPage(page: Int?): Themoviedb? {
+    fun withPage(page: Int?): TheMovieDB? {
         this.page = page
         return this
     }
@@ -45,7 +42,7 @@ class Themoviedb {
         this.results = results
     }
 
-    fun withResults(results: List<Result?>?): Themoviedb? {
+    fun withResults(results: List<Result?>?): TheMovieDB? {
         this.results = results
         return this
     }
@@ -58,7 +55,7 @@ class Themoviedb {
         this.totalPages = totalPages
     }
 
-    fun withTotalPages(totalPages: Int?): Themoviedb {
+    fun withTotalPages(totalPages: Int?): TheMovieDB {
         this.totalPages = totalPages
         return this
     }
@@ -71,7 +68,7 @@ class Themoviedb {
         this.totalResults = totalResults
     }
 
-    fun withTotalResults(totalResults: Int?): Themoviedb? {
+    fun withTotalResults(totalResults: Int?): TheMovieDB? {
         this.totalResults = totalResults
         return this
     }

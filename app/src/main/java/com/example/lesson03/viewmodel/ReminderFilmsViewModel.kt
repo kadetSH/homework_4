@@ -18,28 +18,30 @@ import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
+import io.reactivex.Flowable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ReminderFilmsViewModel(application: Application) : AndroidViewModel(application) {
+class ReminderFilmsViewModel @Inject constructor(application: Application) : AndroidViewModel(application) {
 
     private val items = mutableListOf<FilmsJS>()
-    private val readAllReminder: LiveData<List<RFilm>>
+    private val readAllReminder: Flowable<List<RFilm>>
     private val repository: FilmRepository
     private var list = ArrayList<FilmsItem>()
     private var filmP: String = ""
-    private var snackbarString = MutableLiveData<String>()
-    private val readAllLike: LiveData<List<RFilm>>
+    private var snackBarString = MutableLiveData<String>()
+    private val readAllLike: Flowable<List<RFilm>>
+
     private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
-    val repos: LiveData<ArrayList<FilmsItem>>
+    private val repos: LiveData<ArrayList<FilmsItem>>
         get() = reposLiveData
+    val repos1: Flowable<LiveData<ArrayList<FilmsItem>>> = Flowable.just(repos)
 
     init {
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
         readAllLike = repository.readAllLike
-//        readAllData = repository.readAllData
-//        readAllLike = repository.readAllLike
         readAllReminder = repository.readAllReminder
     }
 
@@ -102,10 +104,10 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
         likeFilmArray: Array<Int>,
     ): List<FilmsItem> {
         val list = ArrayList<FilmsItem>()
-        for (i in 0..titleArray.size - 1) {
+        for (i in titleArray.indices) {
             var shortDescription = descriptionArray[i]
             var proverka = ""
-            if (titleArray[i].equals(filmP)) {
+            if (titleArray[i] == filmP) {
                 proverka = filmP
             }
             var boolFavorite: Boolean
@@ -116,7 +118,7 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
                 shortDescription = shortDescription.substring(0, 120) + "..."
             }
 
-            val spisokItem = FilmsItem(
+            val listItem = FilmsItem(
                 titleArray[i],
                 filmImageArray[i],
                 shortDescription,
@@ -126,7 +128,7 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
                 reminderArray[i],
                 reminderDataTime[i]
             )
-            list.add(spisokItem)
+            list.add(listItem)
         }
         return list
     }
@@ -134,15 +136,13 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
     //Событие при нажатии элемент списка фильмов
     fun filmLikeEvent(filmsItem: FilmsItem, position: Int, note: String, context: Context) {
         if (note == "star") {
-            val lik: Int
-            if (!filmsItem.star) lik = 1
-            else lik = 0
+            val lik: Int = if (!filmsItem.star) 1 else 0
             updateLike(lik, filmsItem.imageFilm)
-            snackbarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
+            snackBarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
         } else if (note == "description") {
             openDescriptions(filmsItem, context)
         } else if (note == "dellIcon") {
-            dellFilm(filmsItem, position, context)
+            dellFilm(filmsItem, context)
         } else if (note == "reminder") {
             if (filmsItem.reminder == 0) {
                 openReminderAdd(filmsItem, context)
@@ -157,22 +157,20 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
 
     //Обновление лайка фильма: добавление/удаление в/из избранного
     private fun updateLike(lik: Int, imagePath: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateLike(lik, imagePath)
-        }
+        repository.updateLike(lik, imagePath)
     }
 
     //Подробное описание фильма
-    private fun openDescriptions(spisokItem: FilmsItem, context: Context) {
+    private fun openDescriptions(listItem: FilmsItem, context: Context) {
         (context as AppCompatActivity).supportFragmentManager
             .beginTransaction()
-            .add(R.id.FrameLayoutContainer, FilmsDescriptionFragment.newInstance(spisokItem))
+            .add(R.id.FrameLayoutContainer, FilmsDescriptionFragment.newInstance(listItem))
             .addToBackStack(null)
             .commit()
     }
 
     //Событие удаления фильма, вызывается диалоговое окно для подтверждения удаления
-    private fun dellFilm(filmsItem: FilmsItem, position: Int, context: Context) {
+    private fun dellFilm(filmsItem: FilmsItem, context: Context) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
         val lst =
             DialogInterface.OnClickListener { dialog, which ->
@@ -190,10 +188,10 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     //Событие добавления напоминания о просмотре фильма
-    private fun openReminderAdd(spisokItem: FilmsItem, context: Context) {
+    private fun openReminderAdd(listItem: FilmsItem, context: Context) {
         (context as AppCompatActivity).supportFragmentManager
             .beginTransaction()
-            .replace(R.id.FrameLayoutContainer, ReminderAddFragment.newInstance(spisokItem))
+            .replace(R.id.FrameLayoutContainer, ReminderAddFragment.newInstance(listItem))
             .addToBackStack(null)
             .commit()
     }
@@ -207,7 +205,7 @@ class ReminderFilmsViewModel(application: Application) : AndroidViewModel(applic
     //Удаляем фильм из списка.
     private fun dellSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.delleteFilm(imagePath)
+            repository.deleteFilm(imagePath)
         }
     }
 

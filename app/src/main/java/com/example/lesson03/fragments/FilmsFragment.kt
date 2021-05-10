@@ -1,51 +1,56 @@
 package com.example.lesson03.fragments
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.animation.Animation
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.*
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
-import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import dagger.android.support.DaggerFragment
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_films_list.*
+import javax.inject.Inject
 
-class FilmsFragment : Fragment() {
+
+class FilmsFragment : DaggerFragment() {
+
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    private val viewModel: RepoListFilmsViewModel by viewModels {
+        viewModelFactory
+    }
 
     companion object {
         const val TAG = "ProverkaTAG"
     }
 
     var list = ArrayList<FilmsItem>()
-    var arrayList = ArrayList<FilmsItem>()
-    var listRoom = ArrayList<FilmsItem>()
-    var listLike = ArrayList<FilmsItem>()
-    var listReminder = ArrayList<FilmsItem>()
     private lateinit var starAnim: Animation
-    private var firstStart = false
-    var filmsBool: Boolean = true
-    private var favoritesBool: Boolean = false
-    var reminderBool: Boolean = false
-
-
-    private val viewModel by lazy {
-        ViewModelProvider(requireActivity()).get(RepoListFilmsViewModel::class.java)
-    }
+    private var position: Int = -1
+    private var idFilm: Int = -1
+    private var note: String = ""
 
     private val fabIcon by lazy {
         requireActivity().findViewById(R.id.fab) as FloatingActionButton
-
     }
-
 
     private var recyclerView: RecyclerView? = null
     private val adapter by lazy {
@@ -55,6 +60,9 @@ class FilmsFragment : Fragment() {
         ) { filmsItem: FilmsItem, position: Int, note: String ->
             (activity as? OnFilmLikeClickListener)?.onFilmLikeClick(filmsItem, position, note)
             context?.let {
+                this.position = position
+                this.note = note
+                idFilm = filmsItem.idFilm
                 viewModel.filmLikeEvent(filmsItem, position, note, it)
             }
         }
@@ -64,10 +72,11 @@ class FilmsFragment : Fragment() {
         load_anim
     }
 
-    //Snackbar
+    //SnackBar
     var snackbar: Snackbar? = null
-    lateinit var listenerSnackbar: View.OnClickListener
+    lateinit var listenerSnackBar: View.OnClickListener
 
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate $this")
@@ -84,21 +93,37 @@ class FilmsFragment : Fragment() {
             android.view.animation.AnimationUtils.loadAnimation(this.context, R.anim.scale_star)
         return inflater.inflate(R.layout.fragment_films_list, container, false)
         Log.d(TAG, "onCreateView")
+
     }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
+    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d(TAG, "onViewCreated")
+
         initRecycler()
         observeViewModel()
+
         viewModel.firstStart()
         fabIcon.setOnClickListener {
             viewModel.downloadsList()
         }
+
     }
+
 
     override fun onDetach() {
         super.onDetach()
         Log.d(TAG, "onDetach")
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.d(TAG, "onAttach")
     }
 
     override fun onDestroy() {
@@ -106,115 +131,109 @@ class FilmsFragment : Fragment() {
         Log.d(TAG, "onDestroy")
     }
 
+    @SuppressLint("CheckResult")
     private fun observeViewModel() {
-        viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
-            arrayList = it
-            adapter.setItems(arrayList)
-        })
 
-        viewModel.fabLiveData.observe(viewLifecycleOwner, Observer<Boolean> {
-            fabIcon?.isVisible = it
-        })
+        //Через RxJava2
 
-        viewModel.readAllLike.observe(viewLifecycleOwner, Observer<List<RFilm>> {
-            if (recyclerView?.adapter?.itemCount!! > 0){
-                viewModel.updateLisNew()
-            }
-        })
+        viewModel.repos1
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                result.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> { item ->
 
-        viewModel.readAllData.observe(viewLifecycleOwner, Observer<List<RFilm>> {it0 ->
-            if (!firstStart) {
-                firstStart = true
-            } else {
-                listRoom.clear()
-                it0.forEach {
+                    if (list.size < item.size) {
+                        for (x: Int in list.size until item.size) {
+                            list.add(item[x])
+                            recyclerView?.adapter?.notifyItemChanged(list.size - 1)
+                        }
+                    }
+                })
+            }, { error ->
 
-                    val like: Boolean = it.like != 0
+            })
 
-                    listRoom.add(
-                        FilmsItem(
-                            it.name,
-                            it.imagePath,
-                            it.description,
-                            "",
-                            like,
-                            it.idFilm,
-                            it.reminder,
-                            it.reminderDataTime
-                        )
-                    )
-                }
-                if (filmsBool) {
-//                    adapter.setItems(listRoom)
-                    favoritesBool = false
-                }
-            }
-        })
+        viewModel.fabLiveData1
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                result.observe(viewLifecycleOwner, Observer<Boolean> {
+                    fabIcon?.isVisible = it
+                })
+            }, { error ->
 
-        viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>> {it0 ->
-            listReminder.clear()
-            it0.forEach {
-                val like: Boolean = it.like != 0
-                listReminder.add(
-                    FilmsItem(
-                        it.name,
-                        it.imagePath,
-                        it.description,
-                        "",
-                        like,
-                        it.idFilm,
-                        it.reminder,
-                        it.reminderDataTime
-                    )
-                )
-            }
-            if (reminderBool) {
-                adapter.setItems(listReminder)
-            }
-        })
+            })
 
-        viewModel.readLikeBool.observe(viewLifecycleOwner, Observer<Boolean> {
-            filmsBool = false
-            reminderBool = false
-            if (it) {
-                adapter.setItems(listLike)
-                favoritesBool = true
-            }
-        })
+        viewModel.animBool1
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                result.observe(viewLifecycleOwner, Observer<Boolean> {
+                    if (it == true) {
+                        animIc?.visibility = View.VISIBLE
+                        animIc.startAnimation(starAnim)
+                    } else {
+                        animIc.clearAnimation()
+                        animIc?.visibility = View.INVISIBLE
+                    }
+                })
+            }, { error ->
 
-        viewModel.readReminderBool.observe(viewLifecycleOwner, Observer<Boolean> {
-            filmsBool = false
-            favoritesBool = false
-            if (it) {
-                adapter.setItems(listReminder)
-                reminderBool = true
-            }
-        })
+            })
 
-        viewModel.readFilmsBool.observe(viewLifecycleOwner, Observer<Boolean> {
-            if (it) {
-                adapter.setItems(listRoom)
-            }
-        })
-
-        viewModel.animBool.observe(viewLifecycleOwner, Observer<Boolean> {
-            if (it == true) {
-                animIc?.visibility = View.VISIBLE
-                animIc.startAnimation(starAnim)
-            } else {
-                animIc.clearAnimation()
-                animIc?.visibility = View.INVISIBLE
-            }
-        })
-
-        viewModel.snackbarString.observe(viewLifecycleOwner, Observer<String> {
+        viewModel.getSnackBarString().observe(this, Observer{
             val strArr = it.split("%")
             val lik = strArr[0].toInt()
             val imagePath = strArr[1]
             val name = strArr[2]
             val note = strArr[3]
-            snackbarShow(lik, imagePath, name, note)
+            snackBarShow(lik, imagePath, name, note)
         })
+
+        viewModel.getFragmentManager().observe(this, Observer{
+            (context as AppCompatActivity).supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.FrameLayoutContainer, it)
+                .addToBackStack(null)
+                .commit()
+        })
+
+
+//        viewModel.snackBarRX
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({ result ->
+//                result.observe(viewLifecycleOwner, Observer<String> {
+//                    val strArr = it.split("%")
+//                    val lik = strArr[0].toInt()
+//                    val imagePath = strArr[1]
+//                    val name = strArr[2]
+//                    val note = strArr[3]
+//                    snackBarShow(lik, imagePath, name, note)
+//                })
+//            }, { error ->
+//
+//            })
+
+        viewModel.filmItemRX
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ result ->
+                result.observe(viewLifecycleOwner, Observer<FilmsItem> { item ->
+                    if ((note == "star") || (note == "reminder")) {
+                        list.removeAt(position)
+                        list.add(position, item)
+                        recyclerView?.adapter?.notifyItemChanged(position)
+                    }
+                    if (note == "dellIcon") {
+                        list.removeAt(position)
+                        recyclerView?.adapter?.notifyItemRemoved(position)
+                    }
+                })
+            }, { error ->
+
+            })
+
     }
 
     private fun initRecycler() {
@@ -222,6 +241,7 @@ class FilmsFragment : Fragment() {
         recyclerView = view?.findViewById(R.id.id_recyclerView)
         recyclerView?.layoutManager = layoutManager
         recyclerView?.addItemDecoration(Decor(22))
+
         recyclerView?.adapter = adapter
         recyclerView!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -234,9 +254,9 @@ class FilmsFragment : Fragment() {
         fun onFilmLikeClick(filmsItem: FilmsItem, position: Int, note: String)
     }
 
-    //snackbar ----------------------
-    private fun snackbarShow(lik: Int, imagePath: String, name: String, note: String) {
-        listenerSnackbar = View.OnClickListener {
+    //snackBar ----------------------
+    private fun snackBarShow(lik: Int, imagePath: String, name: String, note: String) {
+        listenerSnackBar = View.OnClickListener {
 
             when (lik) {
                 1 -> {
@@ -252,16 +272,24 @@ class FilmsFragment : Fragment() {
         }
 
         if (lik == 1) snackbar =
-            Snackbar.make(load_anim, "$name - добавили в избранное", Snackbar.LENGTH_SHORT)
+            Snackbar.make(
+                load_anim,
+                "$name${resources.getString(R.string.addFavorites)}",
+                Snackbar.LENGTH_SHORT
+            )
         if (lik == 0) snackbar =
-            Snackbar.make(load_anim, "$name - удалили из избранного", Snackbar.LENGTH_SHORT)
+            Snackbar.make(
+                load_anim,
+                "$name${resources.getString(R.string.dellFavorites)}",
+                Snackbar.LENGTH_SHORT
+            )
         if (lik == -1) snackbar =
-            Snackbar.make(load_anim, "Нет связи с сервером", Snackbar.LENGTH_SHORT)
+            Snackbar.make(load_anim, resources.getString(R.string.noConnect), Snackbar.LENGTH_SHORT)
         if (lik == 1 or 0) {
-            snackbar?.setAction("Отменить", listenerSnackbar)
+            snackbar?.setAction(resources.getString(R.string.cancellAction), listenerSnackBar)
         }
         if (lik == -1) {
-            snackbar?.setAction("Повторить", listenerSnackbar)
+            snackbar?.setAction(resources.getString(R.string.repeatAction), listenerSnackBar)
         }
 
         snackbar?.show()
@@ -275,6 +303,6 @@ class FilmsFragment : Fragment() {
             }, 40000)
         }
     }
-    //------------------------
+
 
 }

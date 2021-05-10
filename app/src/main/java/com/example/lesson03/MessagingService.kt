@@ -1,23 +1,14 @@
 package com.example.lesson03
 
-import android.util.Log
-import androidx.lifecycle.viewModelScope
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import com.example.lesson03.jsonMy.FilmsJS
-import com.example.lesson03.jsonMy.Json4Kotlin_Base
-import com.example.lesson03.jsonMy.Themoviedb
-import com.example.lesson03.room.FilmRepository
-import com.example.lesson03.room.RFilm
+import com.example.lesson03.jsonMy.Json4KotlinBase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 class MessagingService : FirebaseMessagingService() {
@@ -34,7 +25,7 @@ class MessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
 
         val titleMessage = remoteMessage.notification?.title.toString()
-        if (titleMessage.equals("фильм название")) {
+        if (titleMessage == "фильм название") {
             var idFilm = remoteMessage.notification?.body.toString()
             getFilm(idFilm.toInt())
         }
@@ -43,16 +34,14 @@ class MessagingService : FirebaseMessagingService() {
 
     private fun getFilm(id: Int) {
         App.instance.api.getFilmsMessage(id, API_KEY, langRu)
-            .enqueue(object : Callback<Json4Kotlin_Base> {
-                override fun onFailure(call: Call<Json4Kotlin_Base>, t: Throwable) {
+            .enqueue(object : Callback<Json4KotlinBase> {
+                override fun onFailure(call: Call<Json4KotlinBase>, t: Throwable) {
                     call.cancel()
-//                    animBool.value = false
-//                    snackbarString.postValue("-1" + "%image%name%note")
                 }
 
                 override fun onResponse(
-                    call: Call<Json4Kotlin_Base>,
-                    response: Response<Json4Kotlin_Base>,
+                    call: Call<Json4KotlinBase>,
+                    response: Response<Json4KotlinBase>,
                 ) {
 
                     if (response.isSuccessful) {
@@ -80,7 +69,6 @@ class MessagingService : FirebaseMessagingService() {
                         println("")
                     }
 
-
                 }
             })
     }
@@ -92,7 +80,7 @@ class MessagingService : FirebaseMessagingService() {
         timeReminder: Long,
         idFilm: Int
     ) {
-        var myData: Data = Data.Builder()
+        val myData: Data = Data.Builder()
             .putString("nameFilm", nameFilm)
             .putString("descriptionFilm", descriptionFilm)
             .putString("imagePath", imagePath)
@@ -102,7 +90,7 @@ class MessagingService : FirebaseMessagingService() {
 
         val myWorkRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)
             .addTag(imagePath)
-            .setInitialDelay(timeReminder, TimeUnit.MILLISECONDS) //timeReminder
+            .setInitialDelay(timeReminder, TimeUnit.MILLISECONDS)
             .setInputData(myData)
             .build()
         WorkManager.getInstance().enqueue(myWorkRequest)

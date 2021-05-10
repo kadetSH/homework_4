@@ -2,10 +2,10 @@ package com.example.lesson03.jsonMy
 
 import com.google.gson.annotations.SerializedName
 
-data class Belongs_to_collection (
+data class ProductionCompanies (
 
     @SerializedName("id") val id : Int,
+    @SerializedName("logo_path") val logo_path : String,
     @SerializedName("name") val name : String,
-    @SerializedName("poster_path") val poster_path : String,
-    @SerializedName("backdrop_path") val backdrop_path : String
+    @SerializedName("origin_country") val origin_country : String
 )

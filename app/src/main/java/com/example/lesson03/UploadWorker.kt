@@ -1,25 +1,15 @@
 package com.example.lesson03
 
-import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.ContextCompat.startActivity
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import androidx.work.*
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
-import com.example.lesson03.viewmodel.RepoListFilmsViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
@@ -31,17 +21,17 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
     private val repository: FilmRepository
 
     init {
-        val filmDao = FilmDatabase.getFilmDatabase(appContext).filmDao()
+        val filmDao = FilmDatabase.getFilmDatabase(Application()).filmDao()
         repository = FilmRepository(filmDao)
     }
 
     override suspend fun doWork(): Result {
 
-        var nameFilm: String? = inputData.getString("nameFilm")
-        var descriptionFilm: String? = inputData.getString("descriptionFilm")
-        var imagePath: String? = inputData.getString("imagePath")
-        var idFilm: Int? = inputData.getInt("idFilm", 0)
-        var titleLabel: String? = inputData.getString("titleLabel")
+        val nameFilm: String? = inputData.getString("nameFilm")
+        val descriptionFilm: String? = inputData.getString("descriptionFilm")
+        val imagePath: String? = inputData.getString("imagePath")
+        val idFilm: Int? = inputData.getInt("idFilm", 0)
+        val titleLabel: String? = inputData.getString("titleLabel")
 
         nameFilm?.let {
             descriptionFilm?.let { it1 ->
@@ -67,20 +57,9 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
     ) {
 
 
-        var am: AlarmManager? = null
+        val am: AlarmManager? = null
 
-//        var myData: Data = Data.Builder()
-//            .putString("nameFilm", nameFilm)
-//            .putString("descriptionFilm", descriptionFilm)
-//            .putString("imagePath", imagePath)
-//            .build()
-
-//        val film  = ArrayList<String>()
-//        film.add(nameFilm)
-//        film.add(descriptionFilm)
-//        film.add(imagePath)
-
-        var intent = Intent(applicationContext, ReminderActivity::class.java)
+        val intent = Intent(applicationContext, ReminderActivity::class.java)
         intent.putExtra("EXTRAnameFilm", nameFilm)
         intent.putExtra("EXTRA_descriptionFilm", descriptionFilm)
         intent.putExtra("EXTRA_imagePath", imagePath)
@@ -92,13 +71,12 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
         am?.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000L, pendingIntent)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Channel name" // getString(R.string.channel_name)
-            val description = "Channel description" //getString(R.string.channel_description)
+            val name = "Channel name"
+            val description = "Channel description"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, name, importance)
             channel.description = description
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
+
             val notificationManager =
                 getSystemService(applicationContext, NotificationManager::class.java)
             notificationManager!!.createNotificationChannel(channel)
@@ -107,21 +85,16 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
             .setSmallIcon(R.drawable.ic_video)
             .setContentTitle(titleLabel)
             .setContentText(nameFilm)
-            .setPriority(NotificationCompat.PRIORITY_LOW) // Set the intent that will fire when the user taps the notification
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pendingIntent)
-
             .addAction(R.drawable.baseline_description_24, "Click me", pendingIntent)
-//                .setStyle(NotificationCompat.BigPictureStyle().bigPicture(BitmapFactory.decodeResource(resources,
-//                        R.drawable.sq500x500))
-//                        .setSummaryText("Summary"))
-            /*.setStyle(NotificationCompat.BigTextStyle().bigText(resources.getString(R.string.lorem_ipsum)))*/
             .setAutoCancel(true)
+
         val notificationManager = NotificationManagerCompat.from(applicationContext)
-        // notificationId is a unique int for each notification that you must define
         notificationManager.notify(2, builder.build())
     }
 
-    suspend fun cancellReminder(imagePath: String) {
+    private suspend fun cancellReminder(imagePath: String) {
         repository.updateReminder(0, imagePath, "")
         WorkManager.getInstance().cancelAllWorkByTag(imagePath)
     }

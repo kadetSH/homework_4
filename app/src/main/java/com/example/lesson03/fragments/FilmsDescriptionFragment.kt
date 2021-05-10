@@ -27,7 +27,7 @@ class FilmsDescriptionFragment : Fragment() {
     }
 
     private val url = "https://themoviedb.org/t/p/"
-    private val api_key = "2931998c3a80d7806199320f76d65298"
+    private val apiKey = "2931998c3a80d7806199320f76d65298"
     private val lang = "ru-Ru"
     var list: FilmsItem? = null
 
@@ -47,7 +47,7 @@ class FilmsDescriptionFragment : Fragment() {
         val imageId = view.findViewById<ImageView>(R.id.app_bar_image)
         val descriptionId = view.findViewById<TextView>(R.id.description)
         list?.let {
-//            imageId.setImageResource(it.imageFilm)  //установить картинку в ImageView
+
             val imagePut = getImagePath(it.imageFilm)
 
             Picasso.get()
@@ -68,8 +68,6 @@ class FilmsDescriptionFragment : Fragment() {
 
     }
 
-    private fun getImagePath(name: String): String {
-        return "${url}w500${name}?api_key=$api_key&language=$lang"
-    }
+    private fun getImagePath(name: String): String = "${url}w500${name}?api_key=$apiKey&language=$lang"
 
 }

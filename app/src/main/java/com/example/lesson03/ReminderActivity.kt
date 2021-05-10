@@ -50,9 +50,6 @@ class ReminderActivity : AppCompatActivity() {
             .into(imageFilmID)
     }
 
-    private fun getImagePath(name: String): String {
-        val puth =
-            "https://themoviedb.org/t/p/w500${name}?api_key=2931998c3a80d7806199320f76d65298&language=ru-Ru"
-        return puth
-    }
+    private fun getImagePath(name: String): String = "https://themoviedb.org/t/p/w500${name}?api_key=2931998c3a80d7806199320f76d65298&language=ru-Ru"
+
 }

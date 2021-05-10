@@ -2,11 +2,11 @@ package com.example.lesson03.jsonMy
 
 import com.google.gson.annotations.SerializedName
 
-data class Json4Kotlin_Base (
+data class Json4KotlinBase (
 
     @SerializedName("adult") val adult : Boolean,
     @SerializedName("backdrop_path") val backdrop_path : String,
-    @SerializedName("belongs_to_collection") val belongs_to_collection : Belongs_to_collection,
+    @SerializedName("belongs_to_collection") val belongs_toCollection : BelongsToCollection,
     @SerializedName("budget") val budget : Int,
     @SerializedName("genres") val genres : List<Genres>,
     @SerializedName("homepage") val homepage : String,
@@ -17,12 +17,12 @@ data class Json4Kotlin_Base (
     @SerializedName("overview") val overview : String,
     @SerializedName("popularity") val popularity : Double,
     @SerializedName("poster_path") val poster_path : String,
-    @SerializedName("production_companies") val production_companies : List<Production_companies>,
-    @SerializedName("production_countries") val production_countries : List<Production_countries>,
+    @SerializedName("production_companies") val production_companies : List<ProductionCompanies>,
+    @SerializedName("production_countries") val production_countries : List<ProductionCountries>,
     @SerializedName("release_date") val release_date : String,
     @SerializedName("revenue") val revenue : Int,
     @SerializedName("runtime") val runtime : Int,
-    @SerializedName("spoken_languages") val spoken_languages : List<Spoken_languages>,
+    @SerializedName("spoken_languages") val spoken_languages : List<SpokenLanguages>,
     @SerializedName("status") val status : String,
     @SerializedName("tagline") val tagline : String,
     @SerializedName("title") val title : String,

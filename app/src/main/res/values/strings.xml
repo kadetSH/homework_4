@@ -15,6 +15,7 @@
     <string name="menu_title_films_add" translatable="false">Добавить фильм</string>
     <string name="menu_title_films_dell" translatable="false">Удалить фильм</string>
     <string name="menu_title_invite" translatable="false">Пригласить</string>
+    <string name="dialog_dellete_film" translatable="false">Удалить фильм из списка?</string>
     <string name="header_name" translatable="false">Просмотр фильмов</string>
     <string name="titleToolbar" translatable="false">Дополнительный выбор</string>
     <string name="reminderTitle" translatable="false">Выбор даты и времени для напоминания</string>
@@ -24,6 +25,18 @@
     <string name="reminderCancell" translatable="false">Отменить</string>
     <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
     <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
-    <string name="title0" translatable="false">- выбор раздела просмотра</string>
+    <string name="title0" translatable="false">Выбор фильма</string>
+    <string name="addFavorites" translatable="false"> - добавили в избранное</string>
+    <string name="dellFavorites" translatable="false"> - удалили из избранного</string>
+    <string name="noConnect" translatable="false">Нет связи с сервером</string>
+    <string name="cancellAction" translatable="false">Отменить действие</string>
+    <string name="repeatAction" translatable="false">Повторить действие</string>
+    <string name="Hello" translatable="false">Привет!</string>
+    <string name="Exit" translatable="false">Выйти из приложения?</string>
+    <string name="alertDialogExit" translatable="false">Удалить фильм из списка?</string>
+    <string name="toastNoDateReminder" translatable="false">Не выбрана дата напоминания</string>
+    <string name="toastNoTimeReminder" translatable="false">Не выбрано время напоминания</string>
+    <string name="toastWrongTime" translatable="false">Время напоминания не может быть меньше текущего времени</string>
+    <string name="toastViewingReminder" translatable="false">Напоминание просмотра фильма</string>
 
 </resources>

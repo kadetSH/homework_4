@@ -1,5 +1,6 @@
 package com.example.lesson03.fragments
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
@@ -8,7 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
@@ -17,11 +19,19 @@ import com.example.lesson03.R
 import com.example.lesson03.UploadWorker
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.viewmodel.RepoListFilmsViewModel
+import dagger.android.support.DaggerFragment
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class ReminderAddFragment : Fragment() {
+class ReminderAddFragment : DaggerFragment() {
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    private val viewModel: RepoListFilmsViewModel by viewModels {
+        viewModelFactory
+    }
 
     companion object {
 
@@ -34,12 +44,12 @@ class ReminderAddFragment : Fragment() {
         }
     }
 
-    private val viewModel by lazy {
-        ViewModelProvider(this).get(RepoListFilmsViewModel::class.java)
-    }
     var list: FilmsItem? = null
     lateinit var showReminderDate: EditText
     lateinit var showReminderTime: EditText
+    var yearGlobal: Int = 0
+    var monthGlobal: Int = 0
+    var dayGlobal: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,7 +67,21 @@ class ReminderAddFragment : Fragment() {
     private fun isData(context: Context) {
         val listener =
             DatePickerDialog.OnDateSetListener { datePicker: DatePicker, year: Int, month: Int, day: Int ->
-                showReminderDate.setText("${day}.${month + 1}.${year}")
+                yearGlobal = year
+                monthGlobal = month
+                dayGlobal = day
+                var dayN: String = day.toString()
+                if (dayN.length == 1) {
+                    dayN = "0$dayN"
+                }
+
+                var monthN: String = (month + 1).toString()
+                if (monthN.length == 1) {
+                    monthN = "0$monthN"
+                }
+
+                val yearN = year.toString()
+                showReminderDate.setText("${dayN}.${monthN}.${yearN}")
             }
         val newCalender = Calendar.getInstance()
         val dialog = DatePickerDialog(
@@ -70,6 +94,7 @@ class ReminderAddFragment : Fragment() {
         dialog.show()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun isTime(context: Context) {
         val listener =
             TimePickerDialog.OnTimeSetListener { timePicker: TimePicker, hour: Int, minute: Int ->
@@ -106,7 +131,7 @@ class ReminderAddFragment : Fragment() {
             saveOnClick()
         }
         view.findViewById<Button>(R.id.idReminderCancell).setOnClickListener {
-            cancellClick()
+            cancelClick()
         }
 
         showReminderDate = view.findViewById<EditText>(R.id.reminderDate)
@@ -114,61 +139,64 @@ class ReminderAddFragment : Fragment() {
 
     }
 
-    private fun cancellClick() {
-        activity?.onBackPressed()
+    private fun cancelClick() {
+
+        (context as AppCompatActivity).supportFragmentManager
+            .beginTransaction()
+            .add(R.id.FrameLayoutContainer, FilmsFragment())
+            .addToBackStack(null)
+            .commit()
+
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun saveOnClick() {
 
-        if (showReminderDate.text.toString().equals("")) {
-            selectToast("Не выбрана дата напоминания")
+        if (showReminderDate.text.toString() == "") {
+            selectToast(resources.getString(R.string.toastNoDateReminder))
             return
         }
 
-        if (showReminderTime.text.toString().equals("")) {
-            selectToast("Не выбрано время напоминания")
+        if (showReminderTime.text.toString() == "") {
+            selectToast(resources.getString(R.string.toastNoTimeReminder))
             return
         }
 
-        var dayTimeNumber: Long = 0
-        val formatDate = SimpleDateFormat()
-        formatDate.applyPattern("dd.MM.yyyy")
-        val isDate = formatDate.parse(showReminderDate.text.toString())
-        dayTimeNumber += isDate.time
+        var dayTimeNumberNew: Long = 0
+        val formatDate1 = SimpleDateFormat()
+        formatDate1.applyPattern("dd.MM.yyyy HH:mm")
+        val isDate1 =
+            formatDate1.parse(showReminderDate.text.toString() + " " + showReminderTime.text.toString())
+        dayTimeNumberNew = isDate1.time
 
-        val formatTime = SimpleDateFormat()
-        formatTime.applyPattern("hh:mm")
-        val isTime = formatTime.parse(showReminderTime.text.toString())
-        dayTimeNumber += isTime.time
-
-        val realTime = Date()
+        val realTime = Calendar.getInstance().time
         val realTimeNumber = realTime.time
-        if (dayTimeNumber - realTimeNumber > 0) {
+        if (dayTimeNumberNew - realTimeNumber > 0) {
 
-            val dateDateTime = Date(dayTimeNumber)
+            val dateDateTime = Date(dayTimeNumberNew)
             val formatDateTime = SimpleDateFormat("yyyy.MM.dd HH:mm")
             val strDataTime = formatDateTime.format(dateDateTime)
 
             //Когда дата и время указаны и больше текущего времени отправляем в room bool выбора и строку картинки
-            val reminderTime = dayTimeNumber - realTimeNumber
+            val reminderTime = dayTimeNumberNew - realTimeNumber
             list?.let {
                 viewModel.updateReminder(1, it.imageFilm, strDataTime)
-                workManagetReminder(
+                workManagerReminder(
                     it.nameFilm,
                     it.imageFilm,
                     it.shortDescription,
                     reminderTime,
                     it.idFilm
                 )
-                activity?.onBackPressed()
+                cancelClick()
             }
         } else {
-            selectToast("Время напоминания не может быть меньше текущего времени")
+            selectToast(resources.getString(R.string.toastWrongTime))
             return
         }
     }
 
-    private fun workManagetReminder(
+    private fun workManagerReminder(
         nameFilm: String,
         tag: String,
         descriptionFilm: String,
@@ -180,12 +208,12 @@ class ReminderAddFragment : Fragment() {
             .putString("descriptionFilm", descriptionFilm)
             .putString("imagePath", tag)
             .putInt("idFilm", idFilm)
-            .putString("titleLabel", "Напоминание просмотра фильма")
+            .putString("titleLabel", resources.getString(R.string.toastViewingReminder))
             .build()
 
         val myWorkRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)
             .addTag(tag)
-            .setInitialDelay(timeReminder, TimeUnit.MILLISECONDS) //timeReminder
+            .setInitialDelay(timeReminder, TimeUnit.MILLISECONDS)
             .setInputData(myData)
             .build()
         WorkManager.getInstance().enqueue(myWorkRequest)

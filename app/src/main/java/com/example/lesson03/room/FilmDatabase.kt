@@ -1,12 +1,9 @@
 package com.example.lesson03.room
 
-import android.content.Context
+import android.app.Application
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-
 
 @Database(entities = [RFilm::class], version = 1, exportSchema = false)
 abstract class FilmDatabase : RoomDatabase() {
@@ -17,16 +14,16 @@ abstract class FilmDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE : FilmDatabase? = null
 
-        fun getFilmDatabase(context: Context): FilmDatabase{
-//            throw IllegalArgumentException()
+        fun getFilmDatabase(application: Application): FilmDatabase{
+
             val tempInstance = INSTANCE
-            val applicationScope = CoroutineScope(SupervisorJob())
             if (tempInstance != null){
                 return tempInstance
             }
+
             synchronized(this){
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
+                    application.applicationContext,
                     FilmDatabase::class.java,
                     "film_database4"
                 ).build()

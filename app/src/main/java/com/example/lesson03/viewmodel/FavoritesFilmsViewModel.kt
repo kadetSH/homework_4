@@ -18,24 +18,28 @@ import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
+import io.reactivex.Flowable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(application) {
+class FavoritesFilmsViewModel @Inject constructor(application: Application) : AndroidViewModel(application) {
 
     private val repository: FilmRepository
     private val items = mutableListOf<FilmsJS>()
 
     private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
-    val repos: LiveData<ArrayList<FilmsItem>>
+    private val repos: LiveData<ArrayList<FilmsItem>>
     get() = reposLiveData
+    val repos1: Flowable<LiveData<ArrayList<FilmsItem>>> = Flowable.just(repos)
 
     private var readLikeBoolMutable = MutableLiveData<Boolean>()
-    val readLikeBool: LiveData<Boolean>
+    private val readLikeBool: LiveData<Boolean>
         get() = readLikeBoolMutable
+    val readLikeBool1: Flowable<LiveData<Boolean>> = Flowable.just(readLikeBool)
 
-    val readAllLike: LiveData<List<RFilm>>
-    private var snackbarString = MutableLiveData<String>()
+    val readAllLike: Flowable<List<RFilm>>
+    private var snackBarString = MutableLiveData<String>()
     private var list = ArrayList<FilmsItem>()
     private var filmP: String = ""
     private var favoriteName: ArrayList<String> = ArrayList()
@@ -44,9 +48,6 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
         readAllLike = repository.readAllLike
-//        readAllData = repository.readAllData
-//        readAllLike = repository.readAllLike
-//        readAllReminder = repository.readAllReminder
     }
 
     fun downloadsFavorites(){
@@ -57,7 +58,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
     }
 
     //Загрузка списка фильмов из рума
-    suspend fun downloadsList() {
+    private suspend fun downloadsList() {
         items.clear()
         val searchFilm: List<RFilm> = repository.selectAllFavoritesFilms()
         if (searchFilm.isNotEmpty()) {
@@ -111,7 +112,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
         for (i in titleArray.indices) {
             var shortDescription = descriptionArray[i]
             var proverka = ""
-            if (titleArray[i].equals(filmP)) {
+            if (titleArray[i] == filmP) {
                 proverka = filmP
             }
 
@@ -119,11 +120,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
             val like = likeFilmArray[i]
             boolFavorite = like != 0
 
-            if (shortDescription.length > 120) {
-                shortDescription = shortDescription.substring(0, 120) + "..."
-            }
-
-            val spisokItem = FilmsItem(
+            val listItem = FilmsItem(
                 titleArray[i],
                 filmImageArray[i],
                 shortDescription,
@@ -133,29 +130,29 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
                 reminderArray[i],
                 reminderDataTime[i]
             )
-            list.add(spisokItem)
+            list.add(listItem)
         }
         return list
     }
 
     //Событие при нажатии элемент списка фильмов
     fun filmLikeEvent(filmsItem: FilmsItem, position: Int, note: String, context: Context) {
-        if (note.equals("star")) {
+        if (note == "star") {
             val lik: Int = 0
             updateLike(lik, filmsItem.imageFilm)
-            snackbarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
-        } else if (note.equals("description")) {
+            snackBarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
+        } else if (note == "description") {
             openDescriptions(filmsItem, context)
-        } else if (note.equals("dellIcon")) {
+        } else if (note == "dellIcon") {
             dellFilm(filmsItem, position, context)
-        } else if (note.equals("reminder")) {
+        } else if (note == "reminder") {
             if (filmsItem.reminder == 0) {
                 openReminderAdd(filmsItem, context)
             } else if (filmsItem.reminder == 1) {
                 updateReminder(0, filmsItem.imageFilm, "")
                 WorkManager.getInstance().cancelAllWorkByTag(filmsItem.imageFilm)
             }
-        } else if (note.equals("reminderDataTime")) {
+        } else if (note == "reminderDataTime") {
             println("")
         }
     }
@@ -178,7 +175,7 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
                     dellSelectedFilm(filmsItem.imageFilm)
                 }
             }
-        bld.setMessage("Удалить фильм из списка?")
+        bld.setMessage(R.string.alertDialogExit)
         bld.setNegativeButton("Нет", lst)
         bld.setPositiveButton("Да", lst)
         val dialog: AlertDialog = bld.create()
@@ -188,24 +185,24 @@ class FavoritesFilmsViewModel(application: Application) : AndroidViewModel(appli
     //Удаляем фильм из списка.
     private fun dellSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.delleteFilm(imagePath)
+            repository.deleteFilm(imagePath)
         }
     }
 
     //Событие добавления напоминания о просмотре фильма
-    private fun openReminderAdd(spisokItem: FilmsItem, context: Context) {
+    private fun openReminderAdd(listItem: FilmsItem, context: Context) {
         (context as AppCompatActivity).supportFragmentManager
             .beginTransaction()
-            .replace(R.id.FrameLayoutContainer, ReminderAddFragment.newInstance(spisokItem))
+            .replace(R.id.FrameLayoutContainer, ReminderAddFragment.newInstance(listItem))
             .addToBackStack(null)
             .commit()
     }
 
     //Подробное описание фильма
-    private fun openDescriptions(spisokItem: FilmsItem, context: Context) {
+    private fun openDescriptions(listItem: FilmsItem, context: Context) {
         (context as AppCompatActivity).supportFragmentManager
             .beginTransaction()
-            .add(R.id.FrameLayoutContainer, FilmsDescriptionFragment.newInstance(spisokItem))
+            .add(R.id.FrameLayoutContainer, FilmsDescriptionFragment.newInstance(listItem))
             .addToBackStack(null)
             .commit()
     }
