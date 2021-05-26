@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.lesson03.recyclerMy.FilmsItem
 import com.squareup.picasso.Picasso
 
 
@@ -28,6 +29,8 @@ class ReminderActivity : AppCompatActivity() {
         val fName = this.intent.getStringExtra("EXTRAnameFilm")
         val fDescription = intent.getStringExtra("EXTRA_descriptionFilm")
         val fImagePath = intent.getStringExtra("EXTRA_imagePath")
+//        val filmsItem = this.intent.getSerializableExtra("filmsItem0")
+//        val filmsItem1 = this.intent.getStringExtra("filmsItem1")
 
         fName?.let { name ->
             fDescription?.let { description ->

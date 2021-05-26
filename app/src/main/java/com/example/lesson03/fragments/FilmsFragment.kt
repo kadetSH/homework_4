@@ -38,9 +38,21 @@ class FilmsFragment : DaggerFragment() {
         viewModelFactory
     }
 
+
+
     companion object {
         const val TAG = "ProverkaTAG"
+        fun newInstance(filmsItem: FilmsItem?): FilmsFragment{
+            val args = Bundle()
+            args.putSerializable("item", filmsItem)
+            val fragment = FilmsFragment()
+            fragment.arguments = args
+            return fragment
+        }
+
     }
+
+
 
     var list = ArrayList<FilmsItem>()
     private lateinit var starAnim: Animation
@@ -105,13 +117,21 @@ class FilmsFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d(TAG, "onViewCreated")
 
+        val item = arguments?.getSerializable("item")
+
         initRecycler()
         observeViewModel()
 
-        viewModel.firstStart()
-        fabIcon.setOnClickListener {
-            viewModel.downloadsList()
+        if (item is FilmsItem){
+            viewModel.openDescriptions(item)
+        }else{
+            viewModel.firstStart()
+            fabIcon.setOnClickListener {
+                viewModel.downloadsList()
+            }
         }
+
+
 
     }
 

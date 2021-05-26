@@ -4,12 +4,18 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.fragment.app.Fragment
 import androidx.work.*
+import com.example.lesson03.fragments.FilmsDescriptionFragment
+import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
+import kotlinx.coroutines.withContext
+import java.io.Serializable
 
 class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
@@ -32,14 +38,49 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
         val imagePath: String? = inputData.getString("imagePath")
         val idFilm: Int? = inputData.getInt("idFilm", 0)
         val titleLabel: String? = inputData.getString("titleLabel")
+        val check: String? = inputData.getString("check")
+        val star: Boolean? = inputData.getBoolean("star", false)
+        val reminder: Int? = inputData.getInt("reminder", 0)
+        val reminderDataTime: String? = inputData.getString("reminderDataTime")
+
+
+
+        val filmItem = nameFilm?.let { _nameFilm ->
+            imagePath?.let { _imagePath ->
+                descriptionFilm?.let { _descriptionFilm ->
+                    check?.let { _check ->
+                        star?.let { _star ->
+                            idFilm?.let { _idFilm ->
+                                reminder?.let { _reminder ->
+                                    reminderDataTime?.let { _reminderDataTime ->
+                                        FilmsItem(
+                                            _nameFilm,
+                                            _imagePath,
+                                            _descriptionFilm,
+                                            _check,
+                                            _star,
+                                            _idFilm,
+                                            _reminder,
+                                            _reminderDataTime
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
 
         nameFilm?.let {
             descriptionFilm?.let { it1 ->
                 imagePath?.let { it2 ->
                     idFilm?.let { it3 ->
                         titleLabel?.let { it4 ->
-                            message(it, it1, it2, it3, it4)
-                            cancellReminder(imagePath)
+                            filmItem?.let { it5 -> message(it, it1, it2, it3, it4, it5) }
+                            cancelReminder(imagePath)
                         }
                     }
                 }
@@ -53,20 +94,28 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
         descriptionFilm: String,
         imagePath: String,
         idFilm: Int,
-        titleLabel: String
+        titleLabel: String,
+        filmsItem: FilmsItem
     ) {
 
+//        var df: Fragment = FilmsDescriptionFragment.newInstance(listItem)
+//        fragmentManager.postValue(df)
 
         val am: AlarmManager? = null
-
         val intent = Intent(applicationContext, ReminderActivity::class.java)
         intent.putExtra("EXTRAnameFilm", nameFilm)
         intent.putExtra("EXTRA_descriptionFilm", descriptionFilm)
         intent.putExtra("EXTRA_imagePath", imagePath)
 
 
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent = PendingIntent.getActivity(applicationContext, idFilm, intent, 0)
+        val intent2 = Intent(applicationContext, MainActivity::class.java)
+        intent2.putExtra("filmsItem0", filmsItem)
+
+
+
+
+//        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val pendingIntent = PendingIntent.getActivity(applicationContext, idFilm, intent2, 0)
 
         am?.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000L, pendingIntent)
 
@@ -94,7 +143,7 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
         notificationManager.notify(2, builder.build())
     }
 
-    private suspend fun cancellReminder(imagePath: String) {
+    private suspend fun cancelReminder(imagePath: String) {
         repository.updateReminder(0, imagePath, "")
         WorkManager.getInstance().cancelAllWorkByTag(imagePath)
     }

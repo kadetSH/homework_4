@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentManager
 import com.example.lesson03.fragments.FavoritesFragment
 import com.example.lesson03.fragments.FilmsFragment
 import com.example.lesson03.fragments.ReminderListFragment
+import com.example.lesson03.recyclerMy.FilmsItem
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.android.support.DaggerAppCompatActivity
@@ -55,18 +56,53 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         val fm: FragmentManager = supportFragmentManager
         val fragments: MutableList<androidx.fragment.app.Fragment> = fm.fragments
 
-        if (fragments.size == 0){
-            openListFilms()
+        val filmsItem = this.intent.getSerializableExtra("filmsItem0")
+
+        if (filmsItem is FilmsItem){
+            openListFilms(filmsItem)
+        }else{
+            if (fragments.size == 0){
+                openListFilms(null)
+            }
         }
+
+
+
+//                var df: Fragment = FilmsDescriptionFragment.newInstance(filmsItem)
+//       supportFragmentManager
+//            .beginTransaction()
+//            .replace(R.id.FrameLayoutContainer, df)
+//            .addToBackStack(null)
+//            .commit()
+
+        this.intent.putExtra("filmsItem0", 0)
+
 
     }
 
-    private fun openListFilms() {
+    private fun openListFilms(filmsItem: FilmsItem?) {
         title = resources.getString(R.string.title)
+
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.FrameLayoutContainer, FilmsFragment())
+            .replace(R.id.FrameLayoutContainer, FilmsFragment.newInstance(filmsItem))
             .commit()
+
+//        if (filmsItem != null){
+//            supportFragmentManager
+//                .beginTransaction()
+//                .replace(R.id.FrameLayoutContainer, FilmsFragment.newInstance(filmsItem))
+//                .commit()
+//        }else{
+//            supportFragmentManager
+//                .beginTransaction()
+//                .replace(R.id.FrameLayoutContainer, FilmsFragment())
+//                .commit()
+//        }
+
+
+
+
     }
 
     private fun openListFavorites() {
@@ -87,7 +123,7 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.id_films -> openListFilms()
+            R.id.id_films -> openListFilms(null)
             R.id.id_favorites -> openListFavorites()
             R.id.id_watch_leater -> openListReminder()
             R.id.id_invite -> clickInvite()

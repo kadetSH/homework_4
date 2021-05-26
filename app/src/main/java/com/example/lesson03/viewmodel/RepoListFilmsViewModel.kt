@@ -19,7 +19,6 @@ import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
-import dagger.android.support.DaggerFragment
 import io.reactivex.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -41,7 +40,6 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
 
     private var fragmentManager = SingleLiveEvent<Fragment>()
     fun getFragmentManager(): SingleLiveEvent<Fragment> {
-
         return fragmentManager
     }
 
@@ -49,7 +47,6 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     private val repository: FilmRepository
 
     init {
-
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
 //        deleteAll()
@@ -120,7 +117,7 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
                 .subscribe()
 
         } else if (note == "description") {
-            openDescriptions(filmsItem, context)
+            openDescriptions(filmsItem)
         } else if (note == "dellIcon") {
             deleteFilm(filmsItem, context)
         } else if (note == "reminder") {
@@ -228,7 +225,7 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     }
 
     //Открытие описание фильма
-    private fun openDescriptions(listItem: FilmsItem, context: Context) {
+     fun openDescriptions(listItem: FilmsItem) {
 
         var df: Fragment = FilmsDescriptionFragment.newInstance(listItem)
         fragmentManager.postValue(df)

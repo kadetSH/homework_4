@@ -11,12 +11,13 @@ import androidx.fragment.app.Fragment
 import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.squareup.picasso.Picasso
+import java.io.Serializable
 
 
 class FilmsDescriptionFragment : Fragment() {
 
     companion object {
-        fun newInstance(list: FilmsItem): FilmsDescriptionFragment {
+        fun newInstance(list: Serializable?): FilmsDescriptionFragment {
             val args = Bundle()
             args.putSerializable("spisok", list)
 

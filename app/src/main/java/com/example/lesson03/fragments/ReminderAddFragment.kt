@@ -186,7 +186,8 @@ class ReminderAddFragment : DaggerFragment() {
                     it.imageFilm,
                     it.shortDescription,
                     reminderTime,
-                    it.idFilm
+                    it.idFilm,
+                    it
                 )
                 cancelClick()
             }
@@ -196,19 +197,30 @@ class ReminderAddFragment : DaggerFragment() {
         }
     }
 
+    @SuppressLint("RestrictedApi")
     private fun workManagerReminder(
         nameFilm: String,
         tag: String,
         descriptionFilm: String,
         timeReminder: Long,
-        idFilm: Int
+        idFilm: Int,
+        filmsItem: FilmsItem
     ) {
-        val myData: Data = Data.Builder()
+        val er = filmsItem.toString()
+        val gh = er.toByteArray()
+
+        val myData = Data.Builder()
             .putString("nameFilm", nameFilm)
             .putString("descriptionFilm", descriptionFilm)
             .putString("imagePath", tag)
             .putInt("idFilm", idFilm)
             .putString("titleLabel", resources.getString(R.string.toastViewingReminder))
+
+            .putString("check", filmsItem.proverka)
+            .putBoolean("star", filmsItem.star)
+            .putInt("reminder", filmsItem.reminder)
+            .putString("reminderDataTime", filmsItem.reminderDataTime)
+
             .build()
 
         val myWorkRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)

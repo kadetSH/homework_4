@@ -4,6 +4,7 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.example.lesson03.jsonMy.Json4KotlinBase
+import com.example.lesson03.recyclerMy.FilmsItem
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import retrofit2.Call
@@ -56,7 +57,7 @@ class MessagingService : FirebaseMessagingService() {
                             val timeReminder = 5000L
                             val idFilm = it.id
 
-                            workManagetReminder(
+                            workManagerReminder(
                                 nameFilm,
                                 imagePath,
                                 descriptionFilm,
@@ -73,7 +74,7 @@ class MessagingService : FirebaseMessagingService() {
             })
     }
 
-    private fun workManagetReminder(
+    private fun workManagerReminder(
         nameFilm: String,
         imagePath: String,
         descriptionFilm: String,
@@ -86,6 +87,7 @@ class MessagingService : FirebaseMessagingService() {
             .putString("imagePath", imagePath)
             .putInt("idFilm", idFilm)
             .putString("titleLabel", "Рекомендуем посмотреть")
+//            .putAll("filmsItem", FilmsItem)
             .build()
 
         val myWorkRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)
