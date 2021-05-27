@@ -87,22 +87,6 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
             .beginTransaction()
             .replace(R.id.FrameLayoutContainer, FilmsFragment.newInstance(filmsItem))
             .commit()
-
-//        if (filmsItem != null){
-//            supportFragmentManager
-//                .beginTransaction()
-//                .replace(R.id.FrameLayoutContainer, FilmsFragment.newInstance(filmsItem))
-//                .commit()
-//        }else{
-//            supportFragmentManager
-//                .beginTransaction()
-//                .replace(R.id.FrameLayoutContainer, FilmsFragment())
-//                .commit()
-//        }
-
-
-
-
     }
 
     private fun openListFavorites() {
