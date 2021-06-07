@@ -1,13 +1,14 @@
 package com.example.lesson03.room
 
 
+import androidx.lifecycle.LiveData
 import io.reactivex.Flowable
 
 class FilmRepository(private val filmDao : RFilmDao) {
 
-    val readAllData : Flowable<List<RFilm>> = filmDao.readAllData()
-    val readAllLike : Flowable<List<RFilm>> = filmDao.readAllLike()
-    val readAllReminder : Flowable<List<RFilm>> = filmDao.readAllReminder()
+    val readAllLike : LiveData<List<RFilm>> = filmDao.readAllLike()
+    val readAllReminder : LiveData<List<RFilm>> = filmDao.readAllReminder()
+    val readAllFilms : LiveData<List<RFilm>> = filmDao.readAllData()
 
     fun checkFilm(idFilm: Int) : List<RFilm> {
         return filmDao.checkFilm(idFilm)
@@ -41,16 +42,8 @@ class FilmRepository(private val filmDao : RFilmDao) {
        }
     }
 
-    fun selectAllFilms(countLimit: Int) : Flowable<List<RFilm>> {
+    fun selectAllFilms(countLimit: Int) : List<RFilm> {
         return filmDao.selectAllFilms(countLimit)
-    }
-
-    fun selectAllFavoritesFilms() : List<RFilm> {
-        return filmDao.selectAllFavorites()
-    }
-
-    fun selectAllRemindersFilms() : List<RFilm> {
-        return filmDao.selectAllReminders()
     }
 
     fun selectFilmItem(idFilm: Int) : List<RFilm> {

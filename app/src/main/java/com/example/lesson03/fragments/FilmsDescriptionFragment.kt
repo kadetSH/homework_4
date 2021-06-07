@@ -13,14 +13,12 @@ import com.example.lesson03.recyclerMy.FilmsItem
 import com.squareup.picasso.Picasso
 import java.io.Serializable
 
-
 class FilmsDescriptionFragment : Fragment() {
 
     companion object {
         fun newInstance(list: Serializable?): FilmsDescriptionFragment {
             val args = Bundle()
-            args.putSerializable("spisok", list)
-
+            args.putSerializable("list", list)
             val fragment = FilmsDescriptionFragment()
             fragment.arguments = args
             return fragment
@@ -41,16 +39,14 @@ class FilmsDescriptionFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        list = arguments?.getSerializable("spisok") as FilmsItem
+        list = arguments?.getSerializable("list") as FilmsItem
         val toolbar = view.findViewById<Toolbar>(R.id.toolbarM)
         toolbar.title = list?.nameFilm
-        val spisokFilm = resources.getStringArray(R.array.film)
+        val listFilm = resources.getStringArray(R.array.film)
         val imageId = view.findViewById<ImageView>(R.id.app_bar_image)
         val descriptionId = view.findViewById<TextView>(R.id.description)
-        list?.let {
-
-            val imagePut = getImagePath(it.imageFilm)
-
+        list?.let { itemFilm ->
+            val imagePut = getImagePath(itemFilm.imageFilm)
             Picasso.get()
                 .load(imagePut)
                 .placeholder(R.drawable.ic_image)
@@ -58,17 +54,14 @@ class FilmsDescriptionFragment : Fragment() {
                 .resize(300, 400)
                 .centerCrop()
                 .into(imageId)
-
-            val pos = spisokFilm.indexOf(it.nameFilm)
+            val pos = listFilm.indexOf(itemFilm.nameFilm)
             if (pos > -1) {
                 descriptionId.text = resources.getStringArray(R.array.film_description)[pos]
             } else {
-                descriptionId.text = it.shortDescription
+                descriptionId.text = itemFilm.shortDescription
             }
         }
-
     }
 
     private fun getImagePath(name: String): String = "${url}w500${name}?api_key=$apiKey&language=$lang"
-
 }

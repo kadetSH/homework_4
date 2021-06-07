@@ -1,11 +1,14 @@
 package com.example.lesson03.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -15,16 +18,15 @@ import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
+import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.FavoritesFilmsViewModel
 import dagger.android.support.DaggerFragment
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class FavoritesFragment : DaggerFragment() {
 
     companion object {
-        const val TAGfavorites = "ProverkaTAG"
+        const val TAG_favorites = "checkTAG"
     }
 
     @Inject
@@ -33,7 +35,6 @@ class FavoritesFragment : DaggerFragment() {
     private val viewModel: FavoritesFilmsViewModel by viewModels {
         viewModelFactory
     }
-
     private var recyclerView: RecyclerView? = null
     var filmsBool: Boolean = true
     private var favoritesBool: Boolean = false
@@ -55,9 +56,8 @@ class FavoritesFragment : DaggerFragment() {
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAGfavorites, "фавориты - onCreate $this")
+        Log.d(TAG_favorites, "фавориты - onCreate $this")
         retainInstance = true
-
     }
 
     override fun onCreateView(
@@ -65,82 +65,91 @@ class FavoritesFragment : DaggerFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.d(TAGfavorites, "фавориты - onCreateView")
+        Log.d(TAG_favorites, "фавориты - onCreateView")
         return inflater.inflate(R.layout.fragment_favorites_list, container, false)
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.d(TAG_favorites, "фавориты - onAttach")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG_favorites, "фавориты - onResume")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d(TAGfavorites, "фавориты - onViewCreated")
-        viewModel.downloadsFavorites()
+        Log.d(TAG_favorites, "фавориты - onViewCreated")
         initRecycler(view)
         observeViewModel()
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        Log.d(TAGfavorites, "фавориты - onDetach")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAGfavorites, "фавориты - onDestroy")
     }
 
     @SuppressLint("CheckResult")
     private fun observeViewModel() {
 
-        //RxJava
-        viewModel.repos1
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                result.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
-                    adapter.setItems(it)
-                })
-            }, { error ->
+        viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> { arrayFilmsItem ->
+            adapter.setItems(arrayFilmsItem)
+        })
 
-            })
-
-        viewModel.readAllLike
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                listLike.clear()
-                result.forEach {
-                    val like: Boolean = it.like != 0
-                    listLike.add(
-                        FilmsItem(
-                            it.name,
-                            it.imagePath,
-                            it.description,
-                            "",
-                            like,
-                            it.idFilm,
-                            it.reminder,
-                            it.reminderDataTime
-                        )
+        viewModel.readAllLike.observe(viewLifecycleOwner, Observer<List<RFilm>> { result ->
+            list.clear()
+            result.forEach { itemRoom ->
+                val like: Boolean = itemRoom.like != 0
+                list.add(
+                    FilmsItem(
+                        itemRoom.name,
+                        itemRoom.imagePath,
+                        itemRoom.description,
+                        "",
+                        like,
+                        itemRoom.idFilm,
+                        itemRoom.reminder,
+                        itemRoom.reminderDataTime
                     )
-                }
+                )
+            }
+            adapter.notifyDataSetChanged()
+        })
+
+        viewModel.readLikeBool.observe(viewLifecycleOwner, Observer<Boolean> { likeBool ->
+            filmsBool = false
+            reminderBool = false
+            if (likeBool) {
                 adapter.setItems(listLike)
-            }, { error ->
+                favoritesBool = true
+            }
+        })
 
-            })
+        viewModel.addReminder.observe(viewLifecycleOwner, Observer { addReminder ->
+            val reminderAddFragment: Fragment = ReminderAddFragment()
+            val argument = Bundle()
+            argument.putSerializable(
+                context?.resources?.getString(R.string.bundleFlag_listItem),
+                addReminder
+            )
+            argument.putString(
+                context?.resources?.getString(R.string.bundleFlag_parent),
+                context?.resources?.getString(R.string.bundleFlag_favorites)
+            )
+            reminderAddFragment.arguments = argument
+            (context as AppCompatActivity).supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.FrameLayoutContainer, reminderAddFragment)
+                .addToBackStack(null)
+                .commit()
+        })
 
-        viewModel.readLikeBool1
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                result.observe(viewLifecycleOwner, Observer<Boolean> {
-                    filmsBool = false
-                    reminderBool = false
-                    if (it) {
-                        adapter.setItems(listLike)
-                        favoritesBool = true
-                    }
-                })
-            }, { error ->
-
-            })
+        viewModel.filmItemLoad.observe(viewLifecycleOwner, Observer { descriptionItem ->
+            (context as AppCompatActivity).supportFragmentManager
+                .beginTransaction()
+                .replace(
+                    R.id.FrameLayoutContainer,
+                    FilmsDescriptionFragment.newInstance(descriptionItem)
+                )
+                .addToBackStack(null)
+                .commit()
+        })
 
     }
 

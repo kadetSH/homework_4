@@ -8,11 +8,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
 import com.example.lesson03.fragments.FavoritesFragment
+import com.example.lesson03.fragments.FilmsDescriptionFragment
 import com.example.lesson03.fragments.FilmsFragment
 import com.example.lesson03.fragments.ReminderListFragment
 import com.example.lesson03.recyclerMy.FilmsItem
@@ -29,7 +31,6 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -37,8 +38,6 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         //Без этого лога не отправляется отчет об ошибках
         Crashlytics.log(IllegalArgumentException())
 //        drawer_layout.openDrawer(GravityCompat.START)
-
-
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -56,28 +55,24 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         val fm: FragmentManager = supportFragmentManager
         val fragments: MutableList<androidx.fragment.app.Fragment> = fm.fragments
 
-        val filmsItem = this.intent.getSerializableExtra("filmsItem0")
+        val filmsItem =
+            this.intent.getSerializableExtra(resources.getString(R.string.INTENT_label_filmsItem))
 
-        if (filmsItem is FilmsItem){
-            openListFilms(filmsItem)
-        }else{
-            if (fragments.size == 0){
+        if (filmsItem is FilmsItem) {
+            supportFragmentManager
+                .beginTransaction()
+                .replace(
+                    R.id.FrameLayoutContainer,
+                    FilmsDescriptionFragment.newInstance(filmsItem)
+                )
+                .addToBackStack(null)
+                .commit()
+        } else {
+            if (fragments.size == 0) {
                 openListFilms(null)
             }
         }
-
-
-
-//                var df: Fragment = FilmsDescriptionFragment.newInstance(filmsItem)
-//       supportFragmentManager
-//            .beginTransaction()
-//            .replace(R.id.FrameLayoutContainer, df)
-//            .addToBackStack(null)
-//            .commit()
-
-        this.intent.putExtra("filmsItem0", 0)
-
-
+        this.intent.putExtra(resources.getString(R.string.INTENT_label_filmsItem), 0)
     }
 
     private fun openListFilms(filmsItem: FilmsItem?) {
@@ -135,8 +130,8 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
 
     private fun exitAlertDialog(context: Context, activity: Activity) {
         val bld: AlertDialog.Builder = AlertDialog.Builder(context)
-        val clickCancell = DialogInterface.OnClickListener { dialog,
-                                                             which ->
+        val clickCancel = DialogInterface.OnClickListener { dialog,
+                                                            which ->
             dialog.dismiss()
         }
 
@@ -146,8 +141,8 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         }
         bld.setMessage(resources.getString(R.string.Exit))
         bld.setTitle(resources.getString(R.string.Hello))
-        bld.setNegativeButton("Нет", clickCancell)
-        bld.setPositiveButton("Да", clickExit)
+        bld.setNegativeButton(resources.getString(R.string.labelNo), clickCancel)
+        bld.setPositiveButton(resources.getString(R.string.labelYes), clickExit)
         val dialog: AlertDialog = bld.create()
         dialog.show()
     }

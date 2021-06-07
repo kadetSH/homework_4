@@ -14,6 +14,10 @@ import kotlinx.android.synthetic.main.template.view.*
 
 class FilmsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+    private val url = "https://themoviedb.org/t/p/w200"
+    private val key = "api_key=2931998c3a80d7806199320f76d65298"
+    private val lang = "language=ru-Ru"
+
     private val colorTrue = ContextCompat.getColor(itemView.context, R.color.starTrue)
     private val colorFalse = ContextCompat.getColor(itemView.context, R.color.starFalse)
     var star: ImageView = itemView.idStar
@@ -54,6 +58,6 @@ class FilmsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     }
 
-    private fun getImagePath(name : String): String = "https://themoviedb.org/t/p/w200${name}?api_key=2931998c3a80d7806199320f76d65298&language=ru-Ru"
+    private fun getImagePath(name : String): String = "${url}${name}?${key}&${lang}"
 
 }

@@ -38,5 +38,38 @@
     <string name="toastNoTimeReminder" translatable="false">Не выбрано время напоминания</string>
     <string name="toastWrongTime" translatable="false">Время напоминания не может быть меньше текущего времени</string>
     <string name="toastViewingReminder" translatable="false">Напоминание просмотра фильма</string>
+    <string name="NOTE_DESCRIPTION" translatable="false">Описание фильма</string>
+    <string name="NOTE_DEL_ITEM" translatable="false">Удалить фильм</string>
+    <string name="NOTE_REMINDER" translatable="false">Напоминание о просмотре</string>
+    <string name="NOTE_REMINDER_DATA" translatable="false">Дата напоминания просмотра</string>
+    <string name="NOTE_STAR" translatable="false">Избранное</string>
+    <string name="UploadWorker_nameFilm" translatable="false">nameFilm</string>
+    <string name="UploadWorker_descriptionFilm" translatable="false">descriptionFilm</string>
+    <string name="UploadWorker_imagePath" translatable="false">imagePath</string>
+    <string name="UploadWorker_idFilm" translatable="false">idFilm</string>
+    <string name="UploadWorker_titleLabel" translatable="false">titleLabel</string>
+    <string name="UploadWorker_check" translatable="false">check</string>
+    <string name="UploadWorker_star" translatable="false">star</string>
+    <string name="UploadWorker_reminder" translatable="false">reminder</string>
+    <string name="UploadWorker_channelName" translatable="false">Channel name</string>
+    <string name="UploadWorker_channelDescription" translatable="false">Channel description"</string>
+    <string name="UploadWorker_clickMe" translatable="false">Click me</string>
+    <string name="UploadWorker_reminderDataTime" translatable="false">reminderDataTime</string>
+    <string name="UploadWorker_viewRecommendation" translatable="false">Рекомендуем посмотреть</string>
+    <string name="INTENT_label_EXTRA_nameFilm" translatable="false">EXTRA_nameFilm</string>
+    <string name="INTENT_label_EXTRA_descriptionFilm" translatable="false">EXTRA_descriptionFilm</string>
+    <string name="INTENT_label_EXTRA_imagePath" translatable="false">EXTRA_imagePath</string>
+    <string name="INTENT_label_filmsItem" translatable="false">filmsItem</string>
+    <string name="MessagingService_title" translatable="false">фильм название</string>
+    <string name="labelYes" translatable="false">Да</string>
+    <string name="labelNo" translatable="false">Нет</string>
+    <string name="bundleFlag_favorites" translatable="false">favorites</string>
+    <string name="bundleFlag_repoList" translatable="false">repoList</string>
+    <string name="bundleFlag_listItem" translatable="false">listItem</string>
+    <string name="bundleFlag_parent" translatable="false">parent</string>
+
+
+
+
 
 </resources>

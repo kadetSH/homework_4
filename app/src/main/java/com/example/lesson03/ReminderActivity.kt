@@ -1,14 +1,17 @@
 package com.example.lesson03
 
+import android.content.res.Resources
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.example.lesson03.recyclerMy.FilmsItem
 import com.squareup.picasso.Picasso
 
-
 class ReminderActivity : AppCompatActivity() {
+
+    private val url = "https://themoviedb.org/t/p/w500"
+    private val key = "api_key=2931998c3a80d7806199320f76d65298"
+    private val lang = "language=ru-Ru"
 
     private val nameFilmID by lazy {
         findViewById<TextView>(R.id.nameFilmID)
@@ -26,11 +29,9 @@ class ReminderActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder)
 
-        val fName = this.intent.getStringExtra("EXTRAnameFilm")
-        val fDescription = intent.getStringExtra("EXTRA_descriptionFilm")
-        val fImagePath = intent.getStringExtra("EXTRA_imagePath")
-//        val filmsItem = this.intent.getSerializableExtra("filmsItem0")
-//        val filmsItem1 = this.intent.getStringExtra("filmsItem1")
+        val fName = this.intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_nameFilm))
+        val fDescription = intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_descriptionFilm))
+        val fImagePath = intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_imagePath))
 
         fName?.let { name ->
             fDescription?.let { description ->
@@ -53,6 +54,6 @@ class ReminderActivity : AppCompatActivity() {
             .into(imageFilmID)
     }
 
-    private fun getImagePath(name: String): String = "https://themoviedb.org/t/p/w500${name}?api_key=2931998c3a80d7806199320f76d65298&language=ru-Ru"
+    private fun getImagePath(name: String): String = "$url${name}?$key&$lang"
 
 }

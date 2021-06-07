@@ -33,18 +33,8 @@ class ReminderAddFragment : DaggerFragment() {
         viewModelFactory
     }
 
-    companion object {
-
-        fun newInstance(list: FilmsItem): ReminderAddFragment {
-            val args = Bundle()
-            args.putSerializable("spisokReminder", list)
-            val fragment = ReminderAddFragment()
-            fragment.arguments = args
-            return fragment
-        }
-    }
-
     var list: FilmsItem? = null
+    var parentFragment: String? = null
     lateinit var showReminderDate: EditText
     lateinit var showReminderTime: EditText
     var yearGlobal: Int = 0
@@ -60,10 +50,12 @@ class ReminderAddFragment : DaggerFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        list = arguments?.getSerializable("spisokReminder") as FilmsItem
+        list = arguments?.getSerializable(resources.getString(R.string.bundleFlag_listItem)) as FilmsItem
+        parentFragment = arguments?.getString(resources.getString(R.string.bundleFlag_parent))
         init(view)
     }
 
+    @SuppressLint("SetTextI18n")
     private fun isData(context: Context) {
         val listener =
             DatePickerDialog.OnDateSetListener { datePicker: DatePicker, year: Int, month: Int, day: Int ->
@@ -106,7 +98,7 @@ class ReminderAddFragment : DaggerFragment() {
                 if (minuteSTR.length == 1) {
                     minuteSTR = "0$minuteSTR"
                 }
-                showReminderTime.setText("${hourSTR}:${minuteSTR}") //("${hour}:${minute + 1}")
+                showReminderTime.setText("${hourSTR}:${minuteSTR}")
             }
         val newCalender = Calendar.getInstance()
         val startTime = TimePickerDialog(
@@ -122,10 +114,10 @@ class ReminderAddFragment : DaggerFragment() {
 
     private fun init(view: View) {
         view.findViewById<Button>(R.id.idSelectData).setOnClickListener {
-            this.context?.let { it1 -> isData(it1) }
+            this.context?.let { idSelectData -> isData(idSelectData) }
         }
         view.findViewById<Button>(R.id.idSelectTime).setOnClickListener {
-            this.context?.let { it1 -> isTime(it1) }
+            this.context?.let { idSelectTime -> isTime(idSelectTime) }
         }
         view.findViewById<Button>(R.id.idReminderSave).setOnClickListener {
             saveOnClick()
@@ -133,35 +125,35 @@ class ReminderAddFragment : DaggerFragment() {
         view.findViewById<Button>(R.id.idReminderCancell).setOnClickListener {
             cancelClick()
         }
-
         showReminderDate = view.findViewById<EditText>(R.id.reminderDate)
         showReminderTime = view.findViewById<EditText>(R.id.reminderTime)
-
     }
 
     private fun cancelClick() {
-
-        (context as AppCompatActivity).supportFragmentManager
-            .beginTransaction()
-            .add(R.id.FrameLayoutContainer, FilmsFragment())
-            .addToBackStack(null)
-            .commit()
-
+        if (parentFragment == resources.getString(R.string.bundleFlag_favorites)) {
+            (context as AppCompatActivity).supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.FrameLayoutContainer, FavoritesFragment())
+                .addToBackStack(null)
+                .commit()
+        } else if (parentFragment == resources.getString(R.string.bundleFlag_repoList)) {
+            (context as AppCompatActivity).supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.FrameLayoutContainer, FilmsFragment())
+                .addToBackStack(null)
+                .commit()}
     }
 
     @SuppressLint("SimpleDateFormat")
     private fun saveOnClick() {
-
         if (showReminderDate.text.toString() == "") {
             selectToast(resources.getString(R.string.toastNoDateReminder))
             return
         }
-
         if (showReminderTime.text.toString() == "") {
             selectToast(resources.getString(R.string.toastNoTimeReminder))
             return
         }
-
         var dayTimeNumberNew: Long = 0
         val formatDate1 = SimpleDateFormat()
         formatDate1.applyPattern("dd.MM.yyyy HH:mm")
@@ -179,15 +171,15 @@ class ReminderAddFragment : DaggerFragment() {
 
             //Когда дата и время указаны и больше текущего времени отправляем в room bool выбора и строку картинки
             val reminderTime = dayTimeNumberNew - realTimeNumber
-            list?.let {
-                viewModel.updateReminder(1, it.imageFilm, strDataTime)
+            list?.let { itemFilm ->
+                viewModel.updateReminder(1, itemFilm.imageFilm, strDataTime)
                 workManagerReminder(
-                    it.nameFilm,
-                    it.imageFilm,
-                    it.shortDescription,
+                    itemFilm.nameFilm,
+                    itemFilm.imageFilm,
+                    itemFilm.shortDescription,
                     reminderTime,
-                    it.idFilm,
-                    it
+                    itemFilm.idFilm,
+                    itemFilm
                 )
                 cancelClick()
             }
@@ -206,21 +198,22 @@ class ReminderAddFragment : DaggerFragment() {
         idFilm: Int,
         filmsItem: FilmsItem
     ) {
-        val er = filmsItem.toString()
-        val gh = er.toByteArray()
-
         val myData = Data.Builder()
-            .putString("nameFilm", nameFilm)
-            .putString("descriptionFilm", descriptionFilm)
-            .putString("imagePath", tag)
-            .putInt("idFilm", idFilm)
-            .putString("titleLabel", resources.getString(R.string.toastViewingReminder))
-
-            .putString("check", filmsItem.proverka)
-            .putBoolean("star", filmsItem.star)
-            .putInt("reminder", filmsItem.reminder)
-            .putString("reminderDataTime", filmsItem.reminderDataTime)
-
+            .putString(resources.getString(R.string.UploadWorker_nameFilm), nameFilm)
+            .putString(resources.getString(R.string.UploadWorker_descriptionFilm), descriptionFilm)
+            .putString(resources.getString(R.string.UploadWorker_imagePath), tag)
+            .putInt(resources.getString(R.string.UploadWorker_idFilm), idFilm)
+            .putString(
+                resources.getString(R.string.UploadWorker_titleLabel),
+                resources.getString(R.string.toastViewingReminder)
+            )
+            .putString(resources.getString(R.string.UploadWorker_check), filmsItem.proverka)
+            .putBoolean(resources.getString(R.string.UploadWorker_star), filmsItem.star)
+            .putInt(resources.getString(R.string.UploadWorker_reminder), filmsItem.reminder)
+            .putString(
+                resources.getString(R.string.UploadWorker_reminderDataTime),
+                filmsItem.reminderDataTime
+            )
             .build()
 
         val myWorkRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)

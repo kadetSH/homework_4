@@ -1,10 +1,10 @@
 package com.example.lesson03.room
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import io.reactivex.Flowable
 
 @Dao
 interface RFilmDao {
@@ -16,13 +16,13 @@ interface RFilmDao {
      fun checkFilm(idFilm : Int) :  List<RFilm>
 
     @Query("SELECT * FROM films_table ORDER BY id ASC")
-    fun readAllData() : Flowable<List<RFilm>>
+    fun readAllData() : LiveData<List<RFilm>>
 
     @Query("SELECT * FROM films_table WHERE `like` = 1 ORDER BY id ASC")
-    fun readAllLike() : Flowable<List<RFilm>>
+    fun readAllLike() : LiveData<List<RFilm>>
 
     @Query("SELECT * FROM films_table WHERE reminder = 1 ORDER BY id ASC")
-    fun readAllReminder() : Flowable<List<RFilm>>
+    fun readAllReminder() : LiveData<List<RFilm>>
 
     @Query("DELETE FROM films_table")
     suspend fun deleteAll()
@@ -40,7 +40,7 @@ interface RFilmDao {
      fun updateReminder(reminder : Int, imagePath : String, reminderDataTime: String)
 
     @Query("SELECT * FROM films_table ORDER BY id ASC LIMIT :countLimit")
-    fun selectAllFilms(countLimit: Int): Flowable<List<RFilm>>
+    fun selectAllFilms(countLimit: Int): List<RFilm>
 
     @Query("SELECT * FROM films_table WHERE `like` = 1 ORDER BY id ASC")
     fun selectAllFavorites() : List<RFilm>

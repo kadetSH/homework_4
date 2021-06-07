@@ -1,11 +1,11 @@
 package com.example.lesson03.fragments
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -15,10 +15,9 @@ import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
 import com.example.lesson03.recyclerMy.FilmsItem
+import com.example.lesson03.room.RFilm
 import com.example.lesson03.viewmodel.ReminderFilmsViewModel
 import dagger.android.support.DaggerFragment
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class ReminderListFragment : DaggerFragment() {
@@ -64,27 +63,42 @@ class ReminderListFragment : DaggerFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d(FavoritesFragment.TAGfavorites, "фавориты - onViewCreated")
-        viewModel.downloadsReminders()
+        Log.d(FavoritesFragment.TAG_favorites, "фавориты - onViewCreated")
         initRecycler(view)
         observeViewModel()
     }
 
-    @SuppressLint("CheckResult")
     private fun observeViewModel() {
+        viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>> { result ->
+            list.clear()
+            result.forEach { item ->
+                val like: Boolean = item.like != 0
+                list.add(
+                    FilmsItem(
+                        item.name,
+                        item.imagePath,
+                        item.description,
+                        "",
+                        like,
+                        item.idFilm,
+                        item.reminder,
+                        item.reminderDataTime
+                    )
+                )
+            }
+            adapter.notifyDataSetChanged()
+        })
 
-        //RxJava
-        viewModel.repos1
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                result.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> {
-                    adapter.setItems(it)
-                })
-            }, { error ->
-
-            })
-        ////////RxJava
+        viewModel.filmItemLoad.observe(viewLifecycleOwner, Observer { descriptionItem ->
+            (context as AppCompatActivity).supportFragmentManager
+                .beginTransaction()
+                .replace(
+                    R.id.FrameLayoutContainer,
+                    FilmsDescriptionFragment.newInstance(descriptionItem)
+                )
+                .addToBackStack(null)
+                .commit()
+        })
     }
 
     private fun initRecycler(view: View) {

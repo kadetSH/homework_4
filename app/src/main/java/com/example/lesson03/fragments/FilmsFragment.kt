@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -23,36 +24,27 @@ import com.example.lesson03.viewmodel.RepoListFilmsViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import dagger.android.support.DaggerFragment
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_films_list.*
 import javax.inject.Inject
 
-
 class FilmsFragment : DaggerFragment() {
-
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
-    private val viewModel: RepoListFilmsViewModel by viewModels {
+    val viewModel: RepoListFilmsViewModel by viewModels {
         viewModelFactory
     }
 
-
-
     companion object {
         const val TAG = "ProverkaTAG"
-        fun newInstance(filmsItem: FilmsItem?): FilmsFragment{
+        fun newInstance(filmsItem: FilmsItem?): FilmsFragment {
             val args = Bundle()
             args.putSerializable("item", filmsItem)
             val fragment = FilmsFragment()
             fragment.arguments = args
             return fragment
         }
-
     }
-
-
 
     var list = ArrayList<FilmsItem>()
     private lateinit var starAnim: Animation
@@ -75,7 +67,7 @@ class FilmsFragment : DaggerFragment() {
                 this.position = position
                 this.note = note
                 idFilm = filmsItem.idFilm
-                viewModel.filmLikeEvent(filmsItem, position, note, it)
+                viewModel.filmLikeEvent(filmsItem, note, it)
             }
         }
     }
@@ -93,7 +85,6 @@ class FilmsFragment : DaggerFragment() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate $this")
         retainInstance = true
-
     }
 
     override fun onCreateView(
@@ -105,7 +96,6 @@ class FilmsFragment : DaggerFragment() {
             android.view.animation.AnimationUtils.loadAnimation(this.context, R.anim.scale_star)
         return inflater.inflate(R.layout.fragment_films_list, container, false)
         Log.d(TAG, "onCreateView")
-
     }
 
     override fun onStart() {
@@ -113,28 +103,15 @@ class FilmsFragment : DaggerFragment() {
         Log.d(TAG, "onStart")
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d(TAG, "onViewCreated")
-
-        val item = arguments?.getSerializable("item")
-
         initRecycler()
         observeViewModel()
-
-        if (item is FilmsItem){
-            viewModel.openDescriptions(item)
-        }else{
-            viewModel.firstStart()
-            fabIcon.setOnClickListener {
-                viewModel.downloadsList()
-            }
+        viewModel.firstStart()
+        fabIcon.setOnClickListener {
+            viewModel.downloadsList()
         }
-
-
-
     }
-
 
     override fun onDetach() {
         super.onDetach()
@@ -154,55 +131,31 @@ class FilmsFragment : DaggerFragment() {
     @SuppressLint("CheckResult")
     private fun observeViewModel() {
 
-        //Через RxJava2
+        viewModel.repos.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> { item ->
+            if (list.size < item.size) {
+                for (x: Int in list.size until item.size) {
+                    list.add(item[x])
+                    recyclerView?.adapter?.notifyItemChanged(list.size - 1)
+                }
+            }
+        })
 
-        viewModel.repos1
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                result.observe(viewLifecycleOwner, Observer<ArrayList<FilmsItem>> { item ->
+        viewModel.fabVisible.observe(viewLifecycleOwner, Observer<Boolean> { visibleBool ->
+            this.fabIcon.isVisible = visibleBool
+        })
 
-                    if (list.size < item.size) {
-                        for (x: Int in list.size until item.size) {
-                            list.add(item[x])
-                            recyclerView?.adapter?.notifyItemChanged(list.size - 1)
-                        }
-                    }
-                })
-            }, { error ->
+        viewModel.animalBool.observe(viewLifecycleOwner, Observer<Boolean> { animalBool ->
+            if (animalBool == true) {
+                animIc?.visibility = View.VISIBLE
+                animIc.startAnimation(starAnim)
+            } else {
+                animIc.clearAnimation()
+                animIc?.visibility = View.INVISIBLE
+            }
+        })
 
-            })
-
-        viewModel.fabLiveData1
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                result.observe(viewLifecycleOwner, Observer<Boolean> {
-                    fabIcon?.isVisible = it
-                })
-            }, { error ->
-
-            })
-
-        viewModel.animBool1
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                result.observe(viewLifecycleOwner, Observer<Boolean> {
-                    if (it == true) {
-                        animIc?.visibility = View.VISIBLE
-                        animIc.startAnimation(starAnim)
-                    } else {
-                        animIc.clearAnimation()
-                        animIc?.visibility = View.INVISIBLE
-                    }
-                })
-            }, { error ->
-
-            })
-
-        viewModel.getSnackBarString().observe(this, Observer{
-            val strArr = it.split("%")
+        viewModel.snackBarString.observe(viewLifecycleOwner, Observer { snackStr ->
+            val strArr = snackStr.split("%")
             val lik = strArr[0].toInt()
             val imagePath = strArr[1]
             val name = strArr[2]
@@ -210,49 +163,47 @@ class FilmsFragment : DaggerFragment() {
             snackBarShow(lik, imagePath, name, note)
         })
 
-        viewModel.getFragmentManager().observe(this, Observer{
+        viewModel.filmItemLoad.observe(viewLifecycleOwner, Observer { descriptionItem ->
             (context as AppCompatActivity).supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.FrameLayoutContainer, it)
+                .replace(
+                    R.id.FrameLayoutContainer,
+                    FilmsDescriptionFragment.newInstance(descriptionItem)
+                )
                 .addToBackStack(null)
                 .commit()
         })
 
+        viewModel.addReminder.observe(viewLifecycleOwner, Observer { addReminder ->
+            val reminderAddFragment: Fragment = ReminderAddFragment()
+            val argument = Bundle()
+            argument.putSerializable(
+                context?.resources?.getString(R.string.bundleFlag_listItem),
+                addReminder
+            )
+            argument.putString(
+                context?.resources?.getString(R.string.bundleFlag_parent),
+                context?.resources?.getString(R.string.bundleFlag_repoList)
+            )
+            reminderAddFragment.arguments = argument
+            (context as AppCompatActivity).supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.FrameLayoutContainer, reminderAddFragment)
+                .addToBackStack(null)
+                .commit()
+        })
 
-//        viewModel.snackBarRX
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({ result ->
-//                result.observe(viewLifecycleOwner, Observer<String> {
-//                    val strArr = it.split("%")
-//                    val lik = strArr[0].toInt()
-//                    val imagePath = strArr[1]
-//                    val name = strArr[2]
-//                    val note = strArr[3]
-//                    snackBarShow(lik, imagePath, name, note)
-//                })
-//            }, { error ->
-//
-//            })
-
-        viewModel.filmItemRX
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                result.observe(viewLifecycleOwner, Observer<FilmsItem> { item ->
-                    if ((note == "star") || (note == "reminder")) {
-                        list.removeAt(position)
-                        list.add(position, item)
-                        recyclerView?.adapter?.notifyItemChanged(position)
-                    }
-                    if (note == "dellIcon") {
-                        list.removeAt(position)
-                        recyclerView?.adapter?.notifyItemRemoved(position)
-                    }
-                })
-            }, { error ->
-
-            })
+        viewModel.filmItemLiveData.observe(viewLifecycleOwner, Observer { item ->
+            if ((note == resources.getString(R.string.NOTE_STAR)) || (note == resources.getString(R.string.NOTE_REMINDER))) {
+                list.removeAt(position)
+                list.add(position, item)
+                recyclerView?.adapter?.notifyItemChanged(position)
+            }
+            if (note == resources.getString(R.string.NOTE_DEL_ITEM)) {
+                list.removeAt(position)
+                recyclerView?.adapter?.notifyItemRemoved(position)
+            }
+        })
 
     }
 
@@ -261,7 +212,6 @@ class FilmsFragment : DaggerFragment() {
         recyclerView = view?.findViewById(R.id.id_recyclerView)
         recyclerView?.layoutManager = layoutManager
         recyclerView?.addItemDecoration(Decor(22))
-
         recyclerView?.adapter = adapter
         recyclerView!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -277,7 +227,6 @@ class FilmsFragment : DaggerFragment() {
     //snackBar ----------------------
     private fun snackBarShow(lik: Int, imagePath: String, name: String, note: String) {
         listenerSnackBar = View.OnClickListener {
-
             when (lik) {
                 1 -> {
                     viewModel.updateLike(0, imagePath)
@@ -323,6 +272,5 @@ class FilmsFragment : DaggerFragment() {
             }, 40000)
         }
     }
-
 
 }

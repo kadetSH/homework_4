@@ -1,14 +1,10 @@
 package com.example.lesson03
 
-import android.app.Application
 import com.example.lesson03.dagger.DaggerAppComponent
 import com.example.lesson03.net.Api
 import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
-import okhttp3.CipherSuite
-import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
-import okhttp3.TlsVersion
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -17,7 +13,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-class App :  DaggerApplication() {
+class App : DaggerApplication() {
 
     lateinit var api: Api
 
@@ -59,7 +55,6 @@ class App :  DaggerApplication() {
             .addInterceptor { chain ->
                 return@addInterceptor chain.proceed(
                     chain
-
                         .request()
                         .newBuilder()
                         .build()

@@ -5,43 +5,32 @@ import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.content.DialogInterface
-import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import androidx.work.WorkManager
 import com.example.lesson03.App
 import com.example.lesson03.R
 import com.example.lesson03.SingleLiveEvent
-import com.example.lesson03.fragments.FilmsDescriptionFragment
-import com.example.lesson03.fragments.ReminderAddFragment
 import com.example.lesson03.jsonMy.FilmsJS
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
 import io.reactivex.*
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import javax.inject.Inject
 
-
 class RepoListFilmsViewModel @Inject constructor(application: Application) :
     AndroidViewModel(application) {
 
-    private val readAllData: Flowable<List<RFilm>>
-    private val readAllReminder: Flowable<List<RFilm>>
-    private val readAllLike: Flowable<List<RFilm>>
-    private var snackBarString = SingleLiveEvent<String>()
-//    val snackBarRX: Flowable<LiveData<String>> = Flowable.just(snackBarString)
-    fun getSnackBarString(): SingleLiveEvent<String> {
-        return snackBarString
-    }
+    private var _snackBarString = SingleLiveEvent<String>()
+    val snackBarString: LiveData<String> get() = _snackBarString
 
-    private var fragmentManager = SingleLiveEvent<Fragment>()
-    fun getFragmentManager(): SingleLiveEvent<Fragment> {
-        return fragmentManager
-    }
+    private var _filmItemLoad = SingleLiveEvent<FilmsItem>()
+    val filmItemLoad: LiveData<FilmsItem> get() = _filmItemLoad
+
+    private var _addReminder = SingleLiveEvent<FilmsItem>()
+    val addReminder: LiveData<FilmsItem> get() = _addReminder
 
     var addListFilm = false
     private val repository: FilmRepository
@@ -50,32 +39,23 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
 //        deleteAll()
-        readAllLike = repository.readAllLike
-        readAllData = repository.readAllData
-        readAllReminder = repository.readAllReminder
     }
 
-    private val animBool = MutableLiveData<Boolean>()
-    val animBool1: Flowable<MutableLiveData<Boolean>> = Flowable.just(animBool)
+    private val _animBool = MutableLiveData<Boolean>()
+    val animalBool: LiveData<Boolean> get() = _animBool
+
     private val items = mutableListOf<FilmsJS>()
     var list = ArrayList<FilmsItem>()
     var filmP: String = ""
 
-    private val reposLiveData = MutableLiveData<ArrayList<FilmsItem>>()
-    private val repos: LiveData<ArrayList<FilmsItem>>
-        get() = reposLiveData
-    val repos1: Flowable<LiveData<ArrayList<FilmsItem>>> = Flowable.just(repos)
+    private val _repos = MutableLiveData<ArrayList<FilmsItem>>()
+    val repos: LiveData<ArrayList<FilmsItem>> get() = _repos
 
-    private val fabMutableLiveData = MutableLiveData<Boolean>()
-    private val fabLiveData: LiveData<Boolean>
-        get() = fabMutableLiveData
-    val fabLiveData1: Flowable<LiveData<Boolean>> = Flowable.just(fabLiveData)
+    private val _fabVisible = MutableLiveData<Boolean>()
+    val fabVisible: LiveData<Boolean> get() = _fabVisible
 
     private val filmItemMutable = MutableLiveData<FilmsItem>()
-    private val filmItemLiveData: LiveData<FilmsItem>
-        get() = filmItemMutable
-    val filmItemRX: Flowable<LiveData<FilmsItem>> = Flowable.just(filmItemLiveData)
-
+    val filmItemLiveData: LiveData<FilmsItem> get() = filmItemMutable
 
     private var page = 1
     private val apiKey = "2931998c3a80d7806199320f76d65298"
@@ -90,7 +70,6 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
 
     //При первом старте вью модели сразу грузится список фильмов
     fun firstStart() {
-
         if (!firstStart) {
             firstStart = true
             downloadsList()
@@ -99,31 +78,31 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
             try {
                 selectListIsRoom(20 * (page - 1))
             } catch (ex: java.lang.Exception) {
-
             }
         }
     }
 
     //Событие при нажатии элемент списка фильмов
-    fun filmLikeEvent(filmsItem: FilmsItem, position: Int, note: String, context: Context) {
-        if (note == "star") {
+    fun filmLikeEvent(filmsItem: FilmsItem, note: String, context: Context) {
+        if (note == context.resources.getString(R.string.NOTE_STAR)) {
             val lik: Int = if (!filmsItem.star) 1 else 0
-            snackBarString.postValue("$lik" + "%" + filmsItem.imageFilm + "%" + filmsItem.nameFilm + "%" + "star")
-
+            _snackBarString.postValue(
+                "${lik}%${filmsItem.imageFilm}%${filmsItem.nameFilm}%" + context.resources.getString(
+                    R.string.UploadWorker_star
+                )
+            )
             Observable.just(updateLike(lik, filmsItem.imageFilm))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(Schedulers.computation())
                 .doOnNext { selectFilmItem(filmsItem.idFilm) }
                 .subscribe()
-
-        } else if (note == "description") {
+        } else if (note == context.resources.getString(R.string.NOTE_DESCRIPTION)) {
             openDescriptions(filmsItem)
-        } else if (note == "dellIcon") {
+        } else if (note == context.resources.getString(R.string.NOTE_DEL_ITEM)) {
             deleteFilm(filmsItem, context)
-        } else if (note == "reminder") {
-
+        } else if (note == context.resources.getString(R.string.NOTE_REMINDER)) {
             if (filmsItem.reminder == 0) {
-                openReminderAdd(filmsItem, context)
+                openReminderAdd(filmsItem)
             } else if (filmsItem.reminder == 1) {
                 Observable.just(updateReminder(0, filmsItem.imageFilm, ""))
                     .subscribeOn(Schedulers.newThread())
@@ -132,8 +111,8 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
                     .doOnNext { WorkManager.getInstance().cancelAllWorkByTag(filmsItem.imageFilm) }
                     .subscribe()
             }
-        } else if (note == "reminderDataTime") {
-            println("")
+        } else if (note == context.resources.getString(R.string.NOTE_REMINDER_DATA)) {
+
         }
     }
 
@@ -141,127 +120,107 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     //Если такой фильм есть в руме то обновляется его инфа
     @SuppressLint("CheckResult")
     fun downloadsList() {
-        animBool.value = true
-
+        _animBool.value = true
         App.instance.api.getFilms(page, apiKey, langRu)
             .subscribeOn(Schedulers.io())
             .doOnError {
-                fabMutableLiveData.postValue(true)
+                _fabVisible.postValue(true)
             }
             .subscribeOn(Schedulers.newThread())
             .subscribe(
                 { result ->
-
-                    result.getResults()?.forEach {
+                    result.getResults()?.forEach { itemFilm ->
                         items.clear()
                         val searchFilm: List<RFilm> =
-                            repository.checkFilm(it?.getIdFilm() as Int)
+                            repository.checkFilm(itemFilm?.getIdFilm() as Int)
                         if (searchFilm.isNotEmpty()) {
                             updateSearchFilm(
                                 searchFilm[0].id,
                                 searchFilm[0].imagePath,
                                 searchFilm[0].description
                             )
-
                         } else {
                             try {
                                 //Циклом добавляем фильмы в Room
                                 addFilm(
                                     RFilm(
                                         0,
-                                        it!!.getIdFilm() as Int,
-                                        it!!.getTitle().toString(),
-                                        it!!.getBackdropPath()
+                                        itemFilm!!.getIdFilm() as Int,
+                                        itemFilm!!.getTitle().toString(),
+                                        itemFilm!!.getBackdropPath()
                                             .toString(),
                                         0,
-                                        it!!.getOverview().toString(),
+                                        itemFilm!!.getOverview().toString(),
                                         0,
                                         ""
                                     )
                                 )
-                                /////////////////////
                             } catch (e: Exception) {
-
                             }
-
                         }
 
-                        it?.getTitle()?.let { it1 ->
+                        itemFilm?.getTitle()?.let { titleFilms ->
                             FilmsJS(
-                                it1 as String,
-                                it.getBackdropPath().toString()!!,
+                                titleFilms as String,
+                                itemFilm.getBackdropPath().toString()!!,
                                 0,
-                                it.getOverview().toString()!!,
-                                it.getIdFilm() as Int,
+                                itemFilm.getOverview().toString()!!,
+                                itemFilm.getIdFilm() as Int,
                                 0,
                                 ""
                             )
-                        }?.let { it2 ->
-                            items.add(it2)
+                        }?.let { itemFilmsJS ->
+                            items.add(itemFilmsJS)
                         }
                     }
-                    //
                     //Загрузка из Room
                     selectListIsRoom(20 * page)
-
                     page += 1
                     addListFilm = false
                     viewModelScope.launch(Dispatchers.Main) {
-                        animBool.value = false
-                        fabMutableLiveData.postValue(false)
+                        _animBool.value = false
+                        _fabVisible.postValue(false)
                     }
-
                 },
                 { error ->
                     //Загрузка из Room
                     selectListIsRoom(20 * page)
                     viewModelScope.launch(Dispatchers.Main) {
-                        animBool.value = false
+                        _animBool.value = false
                     }
-                    snackBarString.postValue("-1" + "%image%name%note")
+                    _snackBarString.postValue("-1%image%name%note")
                     error.printStackTrace()
                 },
             )
     }
 
-    //Открытие описание фильма
-     fun openDescriptions(listItem: FilmsItem) {
-
-        var df: Fragment = FilmsDescriptionFragment.newInstance(listItem)
-        fragmentManager.postValue(df)
-//        (context as AppCompatActivity).supportFragmentManager
-//            .beginTransaction()
-//            .add(R.id.FrameLayoutContainer, FilmsDescriptionFragment.newInstance(listItem))
-//            .addToBackStack(null)
-//            .commit()
+    private fun openDescriptions(listItem: FilmsItem) {
+        _filmItemLoad.postValue(listItem)
     }
 
     //Загрузка списка фильмов из рума
-    @SuppressLint("CheckResult")
     private fun selectListIsRoom(countLimit: Int) {
-        //С RxJava
-        repository.selectAllFilms(countLimit)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                items.clear()
-                result.forEach {
-                    items.add(
-                        FilmsJS(
-                            it.name,
-                            it.imagePath,
-                            it.like,
-                            it.description,
-                            it.idFilm,
-                            it.reminder,
-                            it.reminderDataTime
-                        )
+        val listFilmsIsRoom: List<RFilm> = repository.selectAllFilms(countLimit)
+        if (listFilmsIsRoom.isNotEmpty()) {
+            var index = 0
+            items.clear()
+            while (index < listFilmsIsRoom.size) {
+                val itemFilm = listFilmsIsRoom[index]
+                items.add(
+                    FilmsJS(
+                        itemFilm.name,
+                        itemFilm.imagePath,
+                        itemFilm.like,
+                        itemFilm.description,
+                        itemFilm.idFilm,
+                        itemFilm.reminder,
+                        itemFilm.reminderDataTime
                     )
-                }
-                updateList()
-            }, { error ->
-                error.printStackTrace()
-            })
+                )
+                index++
+            }
+            updateList()
+        }
     }
 
     //Обновления напоминания
@@ -281,7 +240,7 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     //Скачать фильм по конкретному id
     private fun selectFilmItem(idFilm: Int) {
 
-        var itemFilm = repository.selectFilmItem(idFilm)
+        val itemFilm = repository.selectFilmItem(idFilm)
         if (itemFilm.isNotEmpty()) {
             val likeBoolean: Boolean = itemFilm[0].like == 1
             filmItemMutable.postValue(
@@ -297,7 +256,6 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
                 )
             )
         }
-        println("")
     }
 
     //Обновление фильма в руме
@@ -310,20 +268,20 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     //Обновляет список фильмов и вставляет в MutableLiveData
     private fun updateList() {
         list.clear()
-        items.forEach { itF ->
+        items.forEach { itemFilm ->
             list.addAll(
                 fillArrays(
-                    arrayOf(itF.title),
-                    arrayOf(itF.image),
-                    arrayOf(itF.description),
-                    arrayOf(itF.idFilm),
-                    arrayOf(itF.reminder),
-                    arrayOf(itF.reminderDataTime),
-                    arrayOf(itF.like)
+                    arrayOf(itemFilm.title),
+                    arrayOf(itemFilm.image),
+                    arrayOf(itemFilm.description),
+                    arrayOf(itemFilm.idFilm),
+                    arrayOf(itemFilm.reminder),
+                    arrayOf(itemFilm.reminderDataTime),
+                    arrayOf(itemFilm.like)
                 )
             )
         }
-        reposLiveData.postValue(list)
+        _repos.postValue(list)
     }
 
     //Создает массив списка фильмов
@@ -340,10 +298,9 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
         for (i in titleArray.indices) {
             val shortDescription = descriptionArray[i]
             var proverka = ""
-            if (titleArray[i].equals(filmP)) {
+            if (titleArray[i] == filmP) {
                 proverka = filmP
             }
-
             var boolFavorite: Boolean
             val like = likeFilmArray[i]
             boolFavorite = like != 0
@@ -374,7 +331,6 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
         }
     }
 
-
     //Обновление лайка фильма: добавление/удаление в/из избранного
     fun updateLike(lik: Int, imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -390,17 +346,15 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
                 if (which == -2) {
                     dialog.dismiss()
                 } else if (which == -1) {
-
                     dellSelectedFilm(filmsItem.imageFilm)
-
                     viewModelScope.launch(Dispatchers.IO) {
                         selectFilmItem(filmsItem.idFilm)
                     }
                 }
             }
         bld.setMessage(R.string.alertDialogExit)
-        bld.setNegativeButton("Нет", lst)
-        bld.setPositiveButton("Да", lst)
+        bld.setNegativeButton(context.resources.getString(R.string.labelNo), lst)
+        bld.setPositiveButton(context.resources.getString(R.string.labelYes), lst)
         val dialog: AlertDialog = bld.create()
         dialog.show()
     }
@@ -413,18 +367,13 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     }
 
     //Событие добавления напоминания о просмотре фильма
-    private fun openReminderAdd(listItem: FilmsItem, context: Context) {
-        (context as AppCompatActivity).supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.FrameLayoutContainer, ReminderAddFragment.newInstance(listItem))
-            .addToBackStack(null)
-            .commit()
+    private fun openReminderAdd(listItem: FilmsItem) {
+        _addReminder.postValue(listItem)
     }
 
     //Загрузка новых фильмов
     fun openFilmLis() {
         downloadsList()
     }
-
 
 }
