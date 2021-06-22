@@ -87,13 +87,6 @@ class FilmsFragment : DaggerFragment() {
     var snackbar: Snackbar? = null
     lateinit var listenerSnackBar: View.OnClickListener
 
-    @Suppress("DEPRECATION")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate $this")
-//        retainInstance = true
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

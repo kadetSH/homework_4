@@ -49,13 +49,6 @@ class ReminderListFragment : DaggerFragment() {
         }
     }
 
-    @Suppress("DEPRECATION")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "ReminderFragment - onCreate $this")
-//        retainInstance = true
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
