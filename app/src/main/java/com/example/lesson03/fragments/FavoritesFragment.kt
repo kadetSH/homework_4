@@ -61,7 +61,7 @@ class FavoritesFragment : DaggerFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG_favorites, "фавориты - onCreate $this")
-        retainInstance = true
+//        retainInstance = true
     }
 
     override fun onCreateView(

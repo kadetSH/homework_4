@@ -18,8 +18,10 @@ import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
 import com.example.lesson03.snacbar.SnacbarData
 import io.reactivex.*
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
+import java.io.IOException
 import javax.inject.Inject
 
 class RepoListFilmsViewModel @Inject constructor(application: Application) :
@@ -81,7 +83,8 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     //Событие при нажатии элемент списка фильмов
     fun filmLikeEvent(filmsItem: FilmsItem, note: String, context: Context) {
         if (note == context.resources.getString(R.string.NOTE_STAR)) {
-            val selectFavorites: Int = if (!filmsItem.star) BuildConfig.ACTION_TO_ACCEPT else BuildConfig.ACTION_CANCEL
+            val selectFavorites: Int =
+                if (!filmsItem.star) BuildConfig.ACTION_TO_ACCEPT else BuildConfig.ACTION_CANCEL
             _snackBarString.postValue(
                 SnacbarData(
                     selectFavorites,
@@ -201,70 +204,97 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     }
 
     //Загрузка списка фильмов из рума
+    @SuppressLint("CheckResult")
     private fun selectListIsRoom(countLimit: Int) {
-        val listFilmsIsRoom: List<RFilm> = repository.selectAllFilms(countLimit)
-        if (listFilmsIsRoom.isNotEmpty()) {
-            var index = 0
-            items.clear()
-            while (index < listFilmsIsRoom.size) {
-                val itemFilm = listFilmsIsRoom[index]
-                items.add(
-                    FilmsJS(
-                        itemFilm.name,
-                        itemFilm.imagePath,
-                        itemFilm.like,
-                        itemFilm.description,
-                        itemFilm.idFilm,
-                        itemFilm.reminder,
-                        itemFilm.reminderDataTime
-                    )
-                )
-                index++
-            }
-            updateList()
+
+        try {
+            Observable.just(repository.selectAllFilms(countLimit))
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.newThread())  //AndroidSchedulers.mainThread()
+                .subscribe({ result ->
+                    if (result.isNotEmpty()) {
+                        var index = 0
+                        items.clear()
+                        while (index < result.size) {
+                            val itemFilm = result[index]
+                            items.add(
+                                FilmsJS(
+                                    itemFilm.name,
+                                    itemFilm.imagePath,
+                                    itemFilm.like,
+                                    itemFilm.description,
+                                    itemFilm.idFilm,
+                                    itemFilm.reminder,
+                                    itemFilm.reminderDataTime
+                                )
+                            )
+                            index++
+                        }
+                        updateList()
+                    }
+                }, { error ->
+                })
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
     }
 
     //Обновления напоминания
     fun updateReminder(reminder: Int, imagePath: String, reminderDataTime: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateReminder(reminder, imagePath, reminderDataTime)
+        Completable.fromCallable {
+            repository.updateReminder(
+                reminder,
+                imagePath,
+                reminderDataTime
+            )
         }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     //Добавляет фильм в Room
     private fun addFilm(film: RFilm) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.addFilm(film)
-        }
+        Completable.fromCallable { repository.addFilm(film) }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     //Скачать фильм по конкретному id
+    @SuppressLint("CheckResult")
     private fun selectFilmItem(idFilm: Int) {
 
-        val itemFilm = repository.selectFilmItem(idFilm)
-        if (itemFilm.isNotEmpty()) {
-            val likeBoolean: Boolean = itemFilm[0].like == 1
-            filmItemMutable.postValue(
-                FilmsItem(
-                    itemFilm[0].name,
-                    itemFilm[0].imagePath,
-                    itemFilm[0].description,
-                    "",
-                    likeBoolean,
-                    itemFilm[0].idFilm,
-                    itemFilm[0].reminder,
-                    itemFilm[0].reminderDataTime
-                )
-            )
+        try {
+            Observable.just(repository.selectFilmItem(idFilm))
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.newThread())  //AndroidSchedulers.mainThread()
+                .subscribe({ itemFilm ->
+                    if (itemFilm.isNotEmpty()) {
+                        val likeBoolean: Boolean = itemFilm[0].like == 1
+                        filmItemMutable.postValue(
+                            FilmsItem(
+                                itemFilm[0].name,
+                                itemFilm[0].imagePath,
+                                itemFilm[0].description,
+                                "",
+                                likeBoolean,
+                                itemFilm[0].idFilm,
+                                itemFilm[0].reminder,
+                                itemFilm[0].reminderDataTime
+                            )
+                        )
+                    }
+                }, { error ->
+                })
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
     }
 
     //Обновление фильма в руме
     private fun updateSearchFilm(id: Int, imagePath: String, description: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateSearchFilm(id, imagePath, description)
-        }
+        Completable.fromCallable { repository.updateSearchFilm(id, imagePath, description) }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     //Обновляет список фильмов и вставляет в MutableLiveData
@@ -335,9 +365,9 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
 
     //Обновление лайка фильма: добавление/удаление в/из избранного
     fun updateLike(selectFavorites: Int, imagePath: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateLike(selectFavorites, imagePath)
-        }
+        Completable.fromCallable { repository.updateLike(selectFavorites, imagePath) }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     //Событие удаления фильма, вызывается диалоговое окно для подтверждения удаления
@@ -363,9 +393,9 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
 
     //Удаляем фильм из списка.
     private fun deleteSelectedFilm(imagePath: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteFilm(imagePath)
-        }
+        Completable.fromCallable { repository.deleteFilm(imagePath) }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     //Событие добавления напоминания о просмотре фильма

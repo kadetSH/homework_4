@@ -1,12 +1,21 @@
 package com.example.lesson03
 
+import android.annotation.SuppressLint
 import android.content.res.Resources
+import androidx.lifecycle.viewModelScope
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import com.example.lesson03.jsonMy.FilmsJS
 import com.example.lesson03.jsonMy.Json4KotlinBase
+import com.example.lesson03.room.RFilm
+import com.example.lesson03.snacbar.SnacbarData
+import com.example.lesson03.viewmodel.RepoListFilmsViewModel
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,39 +35,36 @@ class MessagingService : FirebaseMessagingService() {
         }
     }
 
+    @SuppressLint("CheckResult")
     private fun getFilm(id: Int) {
+
         App.instance.api.getFilmsMessage(id, apiKey, langRu)
-            .enqueue(object : Callback<Json4KotlinBase> {
-                override fun onFailure(call: Call<Json4KotlinBase>, t: Throwable) {
-                    call.cancel()
-                }
+            .subscribeOn(Schedulers.io())
+            .doOnError {
 
-                override fun onResponse(
-                    call: Call<Json4KotlinBase>,
-                    response: Response<Json4KotlinBase>
-                ) {
-                    if (response.isSuccessful) {
+            }
+            .subscribeOn(Schedulers.newThread())
+            .subscribe(
+                { result ->
+                    result?.let { result ->
+                        val nameFilm = result.title
+                        val imagePath = result.poster_path
+                        val descriptionFilm = result.overview
+                        val timeReminder = 5000L
+                        val idFilm = result.id
 
-                        val res = response.body()
-
-                        res?.let { result ->
-                            val nameFilm = result.title
-                            val imagePath = result.poster_path
-                            val descriptionFilm = result.overview
-                            val timeReminder = 5000L
-                            val idFilm = result.id
-
-                            workManagerReminder(
-                                nameFilm,
-                                imagePath,
-                                descriptionFilm,
-                                timeReminder,
-                                idFilm
-                            )
-                        }
+                        workManagerReminder(
+                            nameFilm,
+                            imagePath,
+                            descriptionFilm,
+                            timeReminder,
+                            idFilm
+                        )
                     }
+                },
+                { error ->
                 }
-            })
+            )
     }
 
     private fun workManagerReminder(

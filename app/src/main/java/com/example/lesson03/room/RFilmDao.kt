@@ -10,7 +10,7 @@ import androidx.room.Query
 interface RFilmDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addFilm(film : RFilm)
+     fun addFilm(film : RFilm)
 
     @Query("SELECT * FROM films_table WHERE `idFilm` = :idFilm LIMIT 1")
      fun checkFilm(idFilm : Int) :  List<RFilm>
@@ -25,16 +25,16 @@ interface RFilmDao {
     fun readAllReminder() : LiveData<List<RFilm>>
 
     @Query("DELETE FROM films_table")
-    suspend fun deleteAll()
+    fun deleteAll()
 
     @Query("DELETE FROM films_table WHERE imagePath = :imagePath")
-    suspend fun deleteFilm(imagePath : String)
+     fun deleteFilm(imagePath : String)
 
     @Query("UPDATE films_table SET `like` = :lik WHERE imagePath = :imagePath")
      fun updateLike(lik : Int, imagePath : String)
 
     @Query("UPDATE films_table SET description = :description, imagePath = :imagePath  WHERE id = :id")
-    suspend fun updateSearchFilm(id : Int, imagePath : String, description: String)
+    fun updateSearchFilm(id : Int, imagePath : String, description: String)
 
     @Query("UPDATE films_table SET reminderDataTime = :reminderDataTime, reminder = :reminder WHERE imagePath = :imagePath")
      fun updateReminder(reminder : Int, imagePath : String, reminderDataTime: String)

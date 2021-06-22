@@ -56,8 +56,8 @@ class FilmsFragment : DaggerFragment() {
         requireActivity().findViewById(R.id.fab) as FloatingActionButton
     }
 
-    private val recyclerView by lazy {
-        requireActivity().findViewById(R.id.id_recyclerView) as RecyclerView
+        private val recyclerView by lazy {
+            requireActivity().findViewById(R.id.id_recyclerView) as RecyclerView
     }
 
     private val adapter by lazy {
@@ -71,7 +71,10 @@ class FilmsFragment : DaggerFragment() {
                 this.note = note
                 idFilm = filmsItem.idFilm
                 viewModel.filmLikeEvent(filmsItem, note, it)
-                (activity as? OnFilmDescriptionClickListener)?.onFilmDescriptionClick(filmsItem, note)
+                (activity as? OnFilmDescriptionClickListener)?.onFilmDescriptionClick(
+                    filmsItem,
+                    note
+                )
             }
         }
     }
@@ -88,7 +91,7 @@ class FilmsFragment : DaggerFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate $this")
-        retainInstance = true
+//        retainInstance = true
     }
 
     override fun onCreateView(

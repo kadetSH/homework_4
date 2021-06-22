@@ -16,6 +16,8 @@ import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
+import io.reactivex.Completable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -60,7 +62,9 @@ class ReminderFilmsViewModel @Inject constructor(application: Application) :
 
     //Обновление лайка фильма: добавление/удаление в/из избранного
     private fun updateLike(selectFavorites: Int, imagePath: String) {
-        repository.updateLike(selectFavorites, imagePath)
+        Completable.fromCallable { repository.updateLike(selectFavorites, imagePath) }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     //Подробное описание фильма
@@ -87,16 +91,16 @@ class ReminderFilmsViewModel @Inject constructor(application: Application) :
     }
 
     private fun updateReminder(reminder: Int, imagePath: String, reminderDataTime: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateReminder(reminder, imagePath, reminderDataTime)
-        }
+        Completable.fromCallable { repository.updateReminder(reminder, imagePath, reminderDataTime) }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
     //Удаляем фильм из списка.
     private fun deleteSelectedFilm(imagePath: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteFilm(imagePath)
-        }
+        Completable.fromCallable { repository.deleteFilm(imagePath) }
+            .subscribeOn(Schedulers.io())
+            .subscribe()
     }
 
 }

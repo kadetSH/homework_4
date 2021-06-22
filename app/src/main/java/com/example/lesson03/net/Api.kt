@@ -22,6 +22,6 @@ interface Api {
         @Path("id") id: Int,
         @Query("api_key") API_KEY: String,
         @Query("language") lang: String
-    ): Call<Json4KotlinBase>
+    ): Observable<Json4KotlinBase>
 
 }
