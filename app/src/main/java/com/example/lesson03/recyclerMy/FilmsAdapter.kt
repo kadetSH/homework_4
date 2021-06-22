@@ -1,5 +1,6 @@
 package com.example.lesson03.recyclerMy
 
+
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -20,15 +21,23 @@ class FilmsAdapter(private val layoutInflater: LayoutInflater,
         holder.bind(items[position])
 
         holder.star.setOnClickListener {
-            listener?.invoke(items[position], position, "star")
+            listener?.invoke(items[position], position,  layoutInflater.context.resources.getString(R.string.NOTE_STAR))
         }
 
         holder.description.setOnClickListener {
-            listener?.invoke(items[position], position, "description")
+            listener?.invoke(items[position], position, layoutInflater.context.resources.getString(R.string.NOTE_DESCRIPTION))
         }
 
-        holder.dellFilmIcon.setOnClickListener {
-            listener?.invoke(items[position], position, "dellIcon")
+        holder.deleteFilmIcon.setOnClickListener {
+            listener?.invoke(items[position], position, layoutInflater.context.resources.getString(R.string.NOTE_DEL_ITEM))
+        }
+
+        holder.reminder.setOnClickListener {
+            listener?.invoke(items[position], position, layoutInflater.context.resources.getString(R.string.NOTE_REMINDER))
+        }
+
+        holder.reminderDataTime.setOnClickListener {
+            listener?.invoke(items[position], position, layoutInflater.context.resources.getString(R.string.NOTE_REMINDER_DATA))
         }
     }
 

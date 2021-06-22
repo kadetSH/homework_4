@@ -4,15 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    android:id="@+id/idFilmsFragment"
     >
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/idToolbar"
-            style="@style/Toolbar"
-        app:navigationIcon="@drawable/baseline_description_24"
-        android:showAsAction="always"
-        />
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:id="@+id/idToolbar"-->
+<!--            style="@style/Toolbar"-->
+<!--        app:navigationIcon="@drawable/baseline_description_24"-->
+<!--        android:showAsAction="always"-->
+<!--        />-->
 
 
 
@@ -28,8 +28,7 @@
         android:id="@+id/id_recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="55dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:layout_marginTop="60dp"
         tools:itemCount="3"
         tools:listitem="@layout/template" />
 
@@ -38,16 +37,17 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_gravity="center"
-        android:text="TextView"
         android:visibility="invisible"
         app:srcCompat="@android:drawable/ic_input_add" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
+        android:clickable="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        android:visibility="invisible"
+        app:srcCompat="@android:drawable/stat_sys_download" />
 
 
 

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "651260576039",
+    "project_id": "movie-db-5087c",
+    "storage_bucket": "movie-db-5087c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651260576039:android:2ce9450008153c22d92902",
+        "android_client_info": {
+          "package_name": "com.example.lesson03"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "651260576039-tra8d63u1b5trmhcnagb8ac35013415m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlKPgwFLuX2uzWkxgC1_4oKhLBqZwkRuQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "651260576039-tra8d63u1b5trmhcnagb8ac35013415m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

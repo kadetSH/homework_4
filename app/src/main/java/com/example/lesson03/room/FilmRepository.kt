@@ -1,36 +1,48 @@
 package com.example.lesson03.room
 
-import androidx.lifecycle.LifecycleOwner
+
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.viewModelScope
+import com.example.lesson03.BuildConfig
 
-class FilmRepository(private val filmDao : RFilmDao) {
+class FilmRepository(private val filmDao: RFilmDao) {
 
-    val readAllData : LiveData<List<RFilm>> = filmDao.readAllData()
-    val readAllLike : LiveData<List<RFilm>> = filmDao.readAllLike()
+    val readAllLike: LiveData<List<RFilm>> = filmDao.readAllLike()
+    val readAllReminder: LiveData<List<RFilm>> = filmDao.readAllReminder()
 
-    suspend fun checkFilm(idFilm: Int) : List<RFilm> {
+    fun checkFilm(idFilm: Int): List<RFilm> {
         return filmDao.checkFilm(idFilm)
     }
 
-    suspend fun addFilm(film : RFilm){
+    fun addFilm(film: RFilm) {
         filmDao.addFilm(film)
     }
 
-    suspend fun delAll(){
-        filmDao.deleteAll()
-    }
-
-    suspend fun delleteFilm(imagePath : String){
+    fun deleteFilm(imagePath: String) {
         filmDao.deleteFilm(imagePath)
     }
 
-    suspend fun updateLike(lik: Int, imagePath: String){
-        filmDao.updateLike(lik, imagePath)
+    fun updateLike(selectFavorites: Int, imagePath: String) {
+        filmDao.updateLike(selectFavorites, imagePath)
     }
 
-    suspend fun updateSearchFilm(id: Int, imagePath: String, description: String){
+    fun updateSearchFilm(id: Int, imagePath: String, description: String) {
         filmDao.updateSearchFilm(id, imagePath, description)
+    }
+
+    fun updateReminder(selectFavorites: Int, imagePath: String, reminderDataTime: String) {
+        if (reminderDataTime != "" && (selectFavorites == BuildConfig.ACTION_TO_ACCEPT)) {
+            filmDao.updateReminder(selectFavorites, imagePath, reminderDataTime)
+        } else if (reminderDataTime == "" && (selectFavorites == BuildConfig.ACTION_CANCEL)) {
+            filmDao.updateReminder(selectFavorites, imagePath, reminderDataTime)
+        }
+    }
+
+    fun selectAllFilms(countLimit: Int): List<RFilm> {
+        return filmDao.selectAllFilms(countLimit)
+    }
+
+    fun selectFilmItem(idFilm: Int): List<RFilm> {
+        return filmDao.selectFilmItem(idFilm)
     }
 
 }

@@ -5,5 +5,7 @@ data class FilmsJS (
     val image : String,
     val like : Int,
     val description : String,
-    val idFilm : Int
+    val idFilm : Int,
+    val reminder: Int,
+    val reminderDataTime: String
 )
