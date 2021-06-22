@@ -1,7 +1,6 @@
 package com.example.lesson03.fragments
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,6 +15,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lesson03.BuildConfig
 import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
@@ -36,7 +36,7 @@ class FilmsFragment : DaggerFragment() {
     }
 
     companion object {
-        const val TAG = "ProverkaTAG"
+        const val TAG = "CheckTAG"
         fun newInstance(filmsItem: FilmsItem?): FilmsFragment {
             val args = Bundle()
             args.putSerializable("item", filmsItem)
@@ -56,7 +56,10 @@ class FilmsFragment : DaggerFragment() {
         requireActivity().findViewById(R.id.fab) as FloatingActionButton
     }
 
-    private var recyclerView: RecyclerView? = null
+    private val recyclerView by lazy {
+        requireActivity().findViewById(R.id.id_recyclerView) as RecyclerView
+    }
+
     private val adapter by lazy {
         FilmsAdapter(
             LayoutInflater.from(requireContext()),
@@ -68,6 +71,7 @@ class FilmsFragment : DaggerFragment() {
                 this.note = note
                 idFilm = filmsItem.idFilm
                 viewModel.filmLikeEvent(filmsItem, note, it)
+                (activity as? OnFilmDescriptionClickListener)?.onFilmDescriptionClick(filmsItem, note)
             }
         }
     }
@@ -90,7 +94,7 @@ class FilmsFragment : DaggerFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View? {
         starAnim =
             android.view.animation.AnimationUtils.loadAnimation(this.context, R.anim.scale_star)
@@ -98,34 +102,14 @@ class FilmsFragment : DaggerFragment() {
         Log.d(TAG, "onCreateView")
     }
 
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "onStart")
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d(TAG, "onViewCreated")
         initRecycler()
         observeViewModel()
-        viewModel.firstStart()
+        viewModel.onViewCreated()
         fabIcon.setOnClickListener {
             viewModel.downloadsList()
         }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        Log.d(TAG, "onDetach")
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        Log.d(TAG, "onAttach")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy")
     }
 
     @SuppressLint("CheckResult")
@@ -135,7 +119,7 @@ class FilmsFragment : DaggerFragment() {
             if (list.size < item.size) {
                 for (x: Int in list.size until item.size) {
                     list.add(item[x])
-                    recyclerView?.adapter?.notifyItemChanged(list.size - 1)
+                    recyclerView.adapter?.notifyItemChanged(list.size - 1)
                 }
             }
         })
@@ -155,23 +139,7 @@ class FilmsFragment : DaggerFragment() {
         })
 
         viewModel.snackBarString.observe(viewLifecycleOwner, Observer { snackStr ->
-            val strArr = snackStr.split("%")
-            val lik = strArr[0].toInt()
-            val imagePath = strArr[1]
-            val name = strArr[2]
-            val note = strArr[3]
-            snackBarShow(lik, imagePath, name, note)
-        })
-
-        viewModel.filmItemLoad.observe(viewLifecycleOwner, Observer { descriptionItem ->
-            (context as AppCompatActivity).supportFragmentManager
-                .beginTransaction()
-                .replace(
-                    R.id.FrameLayoutContainer,
-                    FilmsDescriptionFragment.newInstance(descriptionItem)
-                )
-                .addToBackStack(null)
-                .commit()
+            snackBarShow(snackStr.lik, snackStr.imagePath, snackStr.name, snackStr.note)
         })
 
         viewModel.addReminder.observe(viewLifecycleOwner, Observer { addReminder ->
@@ -197,11 +165,11 @@ class FilmsFragment : DaggerFragment() {
             if ((note == resources.getString(R.string.NOTE_STAR)) || (note == resources.getString(R.string.NOTE_REMINDER))) {
                 list.removeAt(position)
                 list.add(position, item)
-                recyclerView?.adapter?.notifyItemChanged(position)
+                recyclerView.adapter?.notifyItemChanged(position)
             }
             if (note == resources.getString(R.string.NOTE_DEL_ITEM)) {
                 list.removeAt(position)
-                recyclerView?.adapter?.notifyItemRemoved(position)
+                recyclerView.adapter?.notifyItemRemoved(position)
             }
         })
 
@@ -209,11 +177,10 @@ class FilmsFragment : DaggerFragment() {
 
     private fun initRecycler() {
         val layoutManager = LinearLayoutManager(context)
-        recyclerView = view?.findViewById(R.id.id_recyclerView)
-        recyclerView?.layoutManager = layoutManager
-        recyclerView?.addItemDecoration(Decor(22))
-        recyclerView?.adapter = adapter
-        recyclerView!!.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        recyclerView.layoutManager = layoutManager
+        recyclerView.addItemDecoration(Decor(22))
+        recyclerView.adapter = adapter
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 viewModel.addList(layoutManager.findLastVisibleItemPosition(), adapter.itemCount)
             }
@@ -224,10 +191,14 @@ class FilmsFragment : DaggerFragment() {
         fun onFilmLikeClick(filmsItem: FilmsItem, position: Int, note: String)
     }
 
+    interface OnFilmDescriptionClickListener {
+        fun onFilmDescriptionClick(filmsItem: FilmsItem, note: String)
+    }
+
     //snackBar ----------------------
-    private fun snackBarShow(lik: Int, imagePath: String, name: String, note: String) {
+    private fun snackBarShow(selectFavorites: Int, imagePath: String, name: String, note: String) {
         listenerSnackBar = View.OnClickListener {
-            when (lik) {
+            when (selectFavorites) {
                 1 -> {
                     viewModel.updateLike(0, imagePath)
                 }
@@ -240,29 +211,29 @@ class FilmsFragment : DaggerFragment() {
             }
         }
 
-        if (lik == 1) snackbar =
+        if (selectFavorites == BuildConfig.ACTION_TO_ACCEPT) snackbar =
             Snackbar.make(
                 load_anim,
                 "$name${resources.getString(R.string.addFavorites)}",
                 Snackbar.LENGTH_SHORT
             )
-        if (lik == 0) snackbar =
+        if (selectFavorites == BuildConfig.ACTION_CANCEL) snackbar =
             Snackbar.make(
                 load_anim,
                 "$name${resources.getString(R.string.dellFavorites)}",
                 Snackbar.LENGTH_SHORT
             )
-        if (lik == -1) snackbar =
+        if (selectFavorites == -1) snackbar =
             Snackbar.make(load_anim, resources.getString(R.string.noConnect), Snackbar.LENGTH_SHORT)
-        if (lik == 1 or 0) {
+        if (selectFavorites == BuildConfig.ACTION_TO_ACCEPT or BuildConfig.ACTION_CANCEL) {
             snackbar?.setAction(resources.getString(R.string.cancellAction), listenerSnackBar)
         }
-        if (lik == -1) {
+        if (selectFavorites == -1) {
             snackbar?.setAction(resources.getString(R.string.repeatAction), listenerSnackBar)
         }
 
         snackbar?.show()
-        if (lik == 1 or 0) {
+        if (selectFavorites == BuildConfig.ACTION_TO_ACCEPT or BuildConfig.ACTION_CANCEL) {
             fab?.postDelayed({
                 snackbar?.dismiss()
             }, 3000)

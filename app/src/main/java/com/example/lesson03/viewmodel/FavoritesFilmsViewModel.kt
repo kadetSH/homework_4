@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.example.lesson03.BuildConfig
 import com.example.lesson03.R
 import com.example.lesson03.SingleLiveEvent
 import com.example.lesson03.recyclerMy.FilmsItem
@@ -48,22 +49,22 @@ class FavoritesFilmsViewModel @Inject constructor(application: Application) :
     //Событие при нажатии элемент списка фильмов
     fun filmLikeEvent(filmsItem: FilmsItem, position: Int, note: String, context: Context) {
         if (note == context.resources.getString(R.string.NOTE_STAR)) {
-            val lik: Int = 0
-            updateLike(lik, filmsItem.imageFilm)
+            val selectFavorites: Int = BuildConfig.ACTION_CANCEL
+            updateLike(selectFavorites, filmsItem.imageFilm)
             snackBarString.postValue(
-                "${lik}%${filmsItem.imageFilm}%${filmsItem.nameFilm}%" + context.resources.getString(
+                "${selectFavorites}%${filmsItem.imageFilm}%${filmsItem.nameFilm}%" + context.resources.getString(
                     R.string.UploadWorker_star
                 )
             )
         } else if (note == context.resources.getString(R.string.NOTE_DESCRIPTION)) {
             openDescriptions(filmsItem)
         } else if (note == context.resources.getString(R.string.NOTE_DEL_ITEM)) {
-            dellFilm(filmsItem, context)
+            deleteFilm(filmsItem, context)
         } else if (note == context.resources.getString(R.string.NOTE_REMINDER)) {
-            if (filmsItem.reminder == 0) {
+            if (filmsItem.reminder == BuildConfig.ACTION_CANCEL) {
                 openReminderAdd(filmsItem)
-            } else if (filmsItem.reminder == 1) {
-                updateReminder(0, filmsItem.imageFilm, "")
+            } else if (filmsItem.reminder == BuildConfig.ACTION_TO_ACCEPT) {
+                updateReminder(BuildConfig.ACTION_CANCEL, filmsItem.imageFilm, "")
                 WorkManager.getInstance().cancelAllWorkByTag(filmsItem.imageFilm)
             }
         } else if (note == context.resources.getString(R.string.NOTE_REMINDER_DATA)) {
@@ -71,32 +72,32 @@ class FavoritesFilmsViewModel @Inject constructor(application: Application) :
     }
 
     //Обновление лайка фильма: добавление/удаление в/из избранного
-    private fun updateLike(lik: Int, imagePath: String) {
+    private fun updateLike(selectFavorites: Int, imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.updateLike(lik, imagePath)
+            repository.updateLike(selectFavorites, imagePath)
         }
     }
 
     //Событие удаления фильма, вызывается диалоговое окно для подтверждения удаления
-    private fun dellFilm(filmsItem: FilmsItem, context: Context) {
-        val bld: AlertDialog.Builder = AlertDialog.Builder(context)
-        val lst =
+    private fun deleteFilm(filmsItem: FilmsItem, context: Context) {
+        val builderAlertDialog: AlertDialog.Builder = AlertDialog.Builder(context)
+        val list =
             DialogInterface.OnClickListener { dialog, which ->
                 if (which == -2) {
                     dialog.dismiss()
                 } else if (which == -1) {
-                    dellSelectedFilm(filmsItem.imageFilm)
+                    deleteSelectedFilm(filmsItem.imageFilm)
                 }
             }
-        bld.setMessage(R.string.alertDialogExit)
-        bld.setNegativeButton(context.resources.getString(R.string.labelNo), lst)
-        bld.setPositiveButton(context.resources.getString(R.string.labelYes), lst)
-        val dialog: AlertDialog = bld.create()
+        builderAlertDialog.setMessage(R.string.alertDialogExit)
+        builderAlertDialog.setNegativeButton(context.resources.getString(R.string.labelNo), list)
+        builderAlertDialog.setPositiveButton(context.resources.getString(R.string.labelYes), list)
+        val dialog: AlertDialog = builderAlertDialog.create()
         dialog.show()
     }
 
     //Удаляем фильм из списка.
-    private fun dellSelectedFilm(imagePath: String) {
+    private fun deleteSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteFilm(imagePath)
         }

@@ -44,7 +44,7 @@ class ReminderAddFragment : DaggerFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_reminder_add, container, false)
     }
@@ -62,18 +62,18 @@ class ReminderAddFragment : DaggerFragment() {
                 yearGlobal = year
                 monthGlobal = month
                 dayGlobal = day
-                var dayN: String = day.toString()
-                if (dayN.length == 1) {
-                    dayN = "0$dayN"
+                var dayStart: String = day.toString()
+                if (dayStart.length == 1) {
+                    dayStart = "0$dayStart"
                 }
 
-                var monthN: String = (month + 1).toString()
-                if (monthN.length == 1) {
-                    monthN = "0$monthN"
+                var monthStart: String = (month + 1).toString()
+                if (monthStart.length == 1) {
+                    monthStart = "0$monthStart"
                 }
 
-                val yearN = year.toString()
-                showReminderDate.setText("${dayN}.${monthN}.${yearN}")
+                val yearStart = year.toString()
+                showReminderDate.setText("${dayStart}.${monthStart}.${yearStart}")
             }
         val newCalender = Calendar.getInstance()
         val dialog = DatePickerDialog(
@@ -155,11 +155,11 @@ class ReminderAddFragment : DaggerFragment() {
             return
         }
         var dayTimeNumberNew: Long = 0
-        val formatDate1 = SimpleDateFormat()
-        formatDate1.applyPattern("dd.MM.yyyy HH:mm")
-        val isDate1 =
-            formatDate1.parse(showReminderDate.text.toString() + " " + showReminderTime.text.toString())
-        dayTimeNumberNew = isDate1.time
+        val formatDate = SimpleDateFormat()
+        formatDate.applyPattern("dd.MM.yyyy HH:mm")
+        val isDate =
+            formatDate.parse(showReminderDate.text.toString() + " " + showReminderTime.text.toString())
+        dayTimeNumberNew = isDate.time
 
         val realTime = Calendar.getInstance().time
         val realTimeNumber = realTime.time
@@ -198,7 +198,7 @@ class ReminderAddFragment : DaggerFragment() {
         idFilm: Int,
         filmsItem: FilmsItem
     ) {
-        val myData = Data.Builder()
+        val myDataBuilder = Data.Builder()
             .putString(resources.getString(R.string.UploadWorker_nameFilm), nameFilm)
             .putString(resources.getString(R.string.UploadWorker_descriptionFilm), descriptionFilm)
             .putString(resources.getString(R.string.UploadWorker_imagePath), tag)
@@ -219,7 +219,7 @@ class ReminderAddFragment : DaggerFragment() {
         val myWorkRequest = OneTimeWorkRequest.Builder(UploadWorker::class.java)
             .addTag(tag)
             .setInitialDelay(timeReminder, TimeUnit.MILLISECONDS)
-            .setInputData(myData)
+            .setInputData(myDataBuilder)
             .build()
         WorkManager.getInstance().enqueue(myWorkRequest)
     }

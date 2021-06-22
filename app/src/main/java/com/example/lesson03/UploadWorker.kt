@@ -18,6 +18,7 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
     companion object {
         const val CHANNEL_ID = "channel"
     }
+
     val context: Context = this.applicationContext
     private val repository: FilmRepository
 
@@ -76,14 +77,14 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
             }
         }
 
-        nameFilm?.let {
-            descriptionFilm?.let { it1 ->
-                imagePath?.let { it2 ->
-                    idFilm?.let { it3 ->
-                        titleLabel?.let { it4 ->
-                            filmItem?.let { it5 -> message(it, it1, it2, it3, it4, it5) }
-                            cancelReminder(imagePath)
+        nameFilm?.let { nameFilm ->
+            imagePath?.let { imagePath ->
+                idFilm?.let { idFilm ->
+                    titleLabel?.let { titleLabel ->
+                        filmItem?.let { filmItem ->
+                            message(nameFilm, idFilm, titleLabel, filmItem)
                         }
+                        cancelReminder(imagePath)
                     }
                 }
             }
@@ -93,36 +94,24 @@ class UploadWorker(appContext: Context, workerParams: WorkerParameters) :
 
     private fun message(
         nameFilm: String,
-        descriptionFilm: String,
-        imagePath: String,
         idFilm: Int,
         titleLabel: String,
         filmsItem: FilmsItem
     ) {
-        val am: AlarmManager? = null
-        val intent = Intent(applicationContext, ReminderActivity::class.java)
+        val alarmManager: AlarmManager? = null
+        val intent = Intent(applicationContext, MainActivity::class.java)
         intent.putExtra(
-            context.getString(R.string.INTENT_label_EXTRA_nameFilm),
-            nameFilm
-        )
-        intent.putExtra(
-            context.getString(R.string.INTENT_label_EXTRA_descriptionFilm),
-            descriptionFilm
-        )
-        intent.putExtra(
-            context.getString(R.string.INTENT_label_EXTRA_imagePath),
-            imagePath
-        )
-
-        val intent2 = Intent(applicationContext, MainActivity::class.java)
-        intent2.putExtra(
             context.getString(R.string.INTENT_label_filmsItem),
             filmsItem
         )
-//        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent = PendingIntent.getActivity(applicationContext, idFilm, intent2, 0)
 
-        am?.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000L, pendingIntent)
+        val pendingIntent = PendingIntent.getActivity(applicationContext, idFilm, intent, 0)
+
+        alarmManager?.set(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis() + 1000L,
+            pendingIntent
+        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = context.getString(R.string.UploadWorker_channelName)

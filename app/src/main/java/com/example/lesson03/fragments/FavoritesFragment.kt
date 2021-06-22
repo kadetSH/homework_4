@@ -1,7 +1,6 @@
 package com.example.lesson03.fragments
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,6 +13,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lesson03.BuildConfig
 import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
@@ -35,7 +35,11 @@ class FavoritesFragment : DaggerFragment() {
     private val viewModel: FavoritesFilmsViewModel by viewModels {
         viewModelFactory
     }
-    private var recyclerView: RecyclerView? = null
+
+    private val recyclerView by lazy {
+        requireActivity().findViewById(R.id.id_recyclerViewFavorites) as RecyclerView
+    }
+
     var filmsBool: Boolean = true
     private var favoritesBool: Boolean = false
     var reminderBool: Boolean = false
@@ -69,19 +73,9 @@ class FavoritesFragment : DaggerFragment() {
         return inflater.inflate(R.layout.fragment_favorites_list, container, false)
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        Log.d(TAG_favorites, "фавориты - onAttach")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG_favorites, "фавориты - onResume")
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d(TAG_favorites, "фавориты - onViewCreated")
-        initRecycler(view)
+        initRecycler()
         observeViewModel()
     }
 
@@ -95,14 +89,14 @@ class FavoritesFragment : DaggerFragment() {
         viewModel.readAllLike.observe(viewLifecycleOwner, Observer<List<RFilm>> { result ->
             list.clear()
             result.forEach { itemRoom ->
-                val like: Boolean = itemRoom.like != 0
+                val selectFavorites: Boolean = itemRoom.like != BuildConfig.ACTION_CANCEL
                 list.add(
                     FilmsItem(
                         itemRoom.name,
                         itemRoom.imagePath,
                         itemRoom.description,
                         "",
-                        like,
+                        selectFavorites,
                         itemRoom.idFilm,
                         itemRoom.reminder,
                         itemRoom.reminderDataTime
@@ -153,12 +147,11 @@ class FavoritesFragment : DaggerFragment() {
 
     }
 
-    private fun initRecycler(view: View) {
+    private fun initRecycler() {
         val layoutManager = LinearLayoutManager(context)
-        recyclerView = view?.findViewById(R.id.id_recyclerViewFavorites)
-        recyclerView?.layoutManager = layoutManager
-        recyclerView?.addItemDecoration(Decor(22))
-        recyclerView?.adapter = adapter
+        recyclerView.layoutManager = layoutManager
+        recyclerView.addItemDecoration(Decor(22))
+        recyclerView.adapter = adapter
     }
 
     interface OnFilmLikeClickListener {

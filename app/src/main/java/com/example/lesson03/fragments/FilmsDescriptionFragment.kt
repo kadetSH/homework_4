@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
+import com.example.lesson03.BuildConfig
 import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.FilmsItem
 import com.squareup.picasso.Picasso
@@ -26,8 +27,8 @@ class FilmsDescriptionFragment : Fragment() {
     }
 
     private val url = "https://themoviedb.org/t/p/"
-    private val apiKey = "2931998c3a80d7806199320f76d65298"
-    private val lang = "ru-Ru"
+    private val apiKey = BuildConfig.apiKey
+    private val lang = BuildConfig.langRu
     var list: FilmsItem? = null
 
     override fun onCreateView(
@@ -54,9 +55,9 @@ class FilmsDescriptionFragment : Fragment() {
                 .resize(300, 400)
                 .centerCrop()
                 .into(imageId)
-            val pos = listFilm.indexOf(itemFilm.nameFilm)
-            if (pos > -1) {
-                descriptionId.text = resources.getStringArray(R.array.film_description)[pos]
+            val position = listFilm.indexOf(itemFilm.nameFilm)
+            if (position > -1) {
+                descriptionId.text = resources.getStringArray(R.array.film_description)[position]
             } else {
                 descriptionId.text = itemFilm.shortDescription
             }

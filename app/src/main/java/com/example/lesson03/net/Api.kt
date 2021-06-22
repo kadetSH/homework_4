@@ -17,7 +17,7 @@ interface Api {
         @Query("language") lang: String
     ): Observable<TheMovieDB>
 
-    @GET("movie/{id}?") //399566
+    @GET("movie/{id}?")
     fun getFilmsMessage(
         @Path("id") id: Int,
         @Query("api_key") API_KEY: String,

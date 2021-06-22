@@ -32,8 +32,6 @@ abstract class FilmDatabase : RoomDatabase() {
                 return instance
             }
         }
-
-
     }
 
 }

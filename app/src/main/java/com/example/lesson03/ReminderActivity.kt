@@ -10,8 +10,8 @@ import com.squareup.picasso.Picasso
 class ReminderActivity : AppCompatActivity() {
 
     private val url = "https://themoviedb.org/t/p/w500"
-    private val key = "api_key=2931998c3a80d7806199320f76d65298"
-    private val lang = "language=ru-Ru"
+    private val key = BuildConfig.apiKey
+    private val lang = BuildConfig.langRu
 
     private val nameFilmID by lazy {
         findViewById<TextView>(R.id.nameFilmID)
@@ -29,13 +29,13 @@ class ReminderActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder)
 
-        val fName = this.intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_nameFilm))
-        val fDescription = intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_descriptionFilm))
-        val fImagePath = intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_imagePath))
+        val filmName = this.intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_nameFilm))
+        val filmDescription = intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_descriptionFilm))
+        val filmImagePath = intent.getStringExtra(Resources.getSystem().getString(R.string.INTENT_label_EXTRA_imagePath))
 
-        fName?.let { name ->
-            fDescription?.let { description ->
-                fImagePath?.let { imagePath ->
+        filmName?.let { name ->
+            filmDescription?.let { description ->
+                filmImagePath?.let { imagePath ->
                     nameFilmID.text = name
                     descriptionFilmID.text = description
                     loadImage(imagePath)
@@ -54,6 +54,6 @@ class ReminderActivity : AppCompatActivity() {
             .into(imageFilmID)
     }
 
-    private fun getImagePath(name: String): String = "$url${name}?$key&$lang"
+    private fun getImagePath(name: String): String = "$url${name}?api_key=$key&language=$lang"
 
 }

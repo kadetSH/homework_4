@@ -8,7 +8,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -23,7 +22,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
+    FilmsFragment.OnFilmDescriptionClickListener {
 
     object Crashlytics {
         fun log(e: Throwable) {
@@ -37,7 +38,6 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
 
         //Без этого лога не отправляется отчет об ошибках
         Crashlytics.log(IllegalArgumentException())
-//        drawer_layout.openDrawer(GravityCompat.START)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -52,8 +52,8 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         //Слушаем нажатие в выпадающем меню
         id_navigation.setNavigationItemSelectedListener(this)
 
-        val fm: FragmentManager = supportFragmentManager
-        val fragments: MutableList<androidx.fragment.app.Fragment> = fm.fragments
+        val fragmentManager: FragmentManager = supportFragmentManager
+        val fragments: MutableList<androidx.fragment.app.Fragment> = fragmentManager.fragments
 
         val filmsItem =
             this.intent.getSerializableExtra(resources.getString(R.string.INTENT_label_filmsItem))
@@ -77,7 +77,6 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
 
     private fun openListFilms(filmsItem: FilmsItem?) {
         title = resources.getString(R.string.title)
-
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.FrameLayoutContainer, FilmsFragment.newInstance(filmsItem))
@@ -129,7 +128,7 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
     }
 
     private fun exitAlertDialog(context: Context, activity: Activity) {
-        val bld: AlertDialog.Builder = AlertDialog.Builder(context)
+        val builderAlertDialog: AlertDialog.Builder = AlertDialog.Builder(context)
         val clickCancel = DialogInterface.OnClickListener { dialog,
                                                             which ->
             dialog.dismiss()
@@ -139,11 +138,24 @@ class MainActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
                                                           which ->
             activity.finish()
         }
-        bld.setMessage(resources.getString(R.string.Exit))
-        bld.setTitle(resources.getString(R.string.Hello))
-        bld.setNegativeButton(resources.getString(R.string.labelNo), clickCancel)
-        bld.setPositiveButton(resources.getString(R.string.labelYes), clickExit)
-        val dialog: AlertDialog = bld.create()
+        builderAlertDialog.setMessage(resources.getString(R.string.Exit))
+        builderAlertDialog.setTitle(resources.getString(R.string.Hello))
+        builderAlertDialog.setNegativeButton(resources.getString(R.string.labelNo), clickCancel)
+        builderAlertDialog.setPositiveButton(resources.getString(R.string.labelYes), clickExit)
+        val dialog: AlertDialog = builderAlertDialog.create()
         dialog.show()
+    }
+
+    override fun onFilmDescriptionClick(filmsItem: FilmsItem, note: String) {
+        if (note == resources.getString(R.string.NOTE_DESCRIPTION)) {
+            supportFragmentManager
+                .beginTransaction()
+                .add(
+                    R.id.FrameLayoutContainer,
+                    FilmsDescriptionFragment.newInstance(filmsItem)
+                )
+                .addToBackStack(null)
+                .commit()
+        }
     }
 }

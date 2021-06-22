@@ -1,12 +1,10 @@
 package com.example.lesson03.recyclerMy
 
-import android.app.Application
-import android.content.res.Resources
+
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lesson03.R
-import kotlin.coroutines.coroutineContext
 
 class FilmsAdapter(private val layoutInflater: LayoutInflater,
                    private val items: ArrayList<FilmsItem>,
@@ -30,7 +28,7 @@ class FilmsAdapter(private val layoutInflater: LayoutInflater,
             listener?.invoke(items[position], position, layoutInflater.context.resources.getString(R.string.NOTE_DESCRIPTION))
         }
 
-        holder.dellFilmIcon.setOnClickListener {
+        holder.deleteFilmIcon.setOnClickListener {
             listener?.invoke(items[position], position, layoutInflater.context.resources.getString(R.string.NOTE_DEL_ITEM))
         }
 

@@ -8,6 +8,7 @@ import android.content.DialogInterface
 import androidx.lifecycle.*
 import androidx.work.WorkManager
 import com.example.lesson03.App
+import com.example.lesson03.BuildConfig
 import com.example.lesson03.R
 import com.example.lesson03.SingleLiveEvent
 import com.example.lesson03.jsonMy.FilmsJS
@@ -15,6 +16,7 @@ import com.example.lesson03.recyclerMy.FilmsItem
 import com.example.lesson03.room.FilmDatabase
 import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
+import com.example.lesson03.snacbar.SnacbarData
 import io.reactivex.*
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
@@ -23,30 +25,31 @@ import javax.inject.Inject
 class RepoListFilmsViewModel @Inject constructor(application: Application) :
     AndroidViewModel(application) {
 
-    private var _snackBarString = SingleLiveEvent<String>()
-    val snackBarString: LiveData<String> get() = _snackBarString
+    companion object {
+        private var page = 1
+    }
 
-    private var _filmItemLoad = SingleLiveEvent<FilmsItem>()
-    val filmItemLoad: LiveData<FilmsItem> get() = _filmItemLoad
+    private var _snackBarString = SingleLiveEvent<SnacbarData>()
+    val snackBarString: LiveData<SnacbarData> get() = _snackBarString
 
     private var _addReminder = SingleLiveEvent<FilmsItem>()
     val addReminder: LiveData<FilmsItem> get() = _addReminder
 
-    var addListFilm = false
+    private val beforeEndOfList: Int = 6
+    private var addListFilm = false
     private val repository: FilmRepository
 
     init {
         val filmDao = FilmDatabase.getFilmDatabase(application).filmDao()
         repository = FilmRepository(filmDao)
-//        deleteAll()
     }
 
     private val _animBool = MutableLiveData<Boolean>()
     val animalBool: LiveData<Boolean> get() = _animBool
 
     private val items = mutableListOf<FilmsJS>()
-    var list = ArrayList<FilmsItem>()
-    var filmP: String = ""
+    var listFilmsItem = ArrayList<FilmsItem>()
+    var filmCheck: String = ""
 
     private val _repos = MutableLiveData<ArrayList<FilmsItem>>()
     val repos: LiveData<ArrayList<FilmsItem>> get() = _repos
@@ -57,19 +60,12 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     private val filmItemMutable = MutableLiveData<FilmsItem>()
     val filmItemLiveData: LiveData<FilmsItem> get() = filmItemMutable
 
-    private var page = 1
-    private val apiKey = "2931998c3a80d7806199320f76d65298"
-    private val langRu = "ru-Ru"
+    private val apiKey = BuildConfig.apiKey
+    private val langRu = BuildConfig.langRu
     var firstStart: Boolean = false
 
-    fun deleteAll() {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteAll()
-        }
-    }
-
     //При первом старте вью модели сразу грузится список фильмов
-    fun firstStart() {
+    fun onViewCreated() {
         if (!firstStart) {
             firstStart = true
             downloadsList()
@@ -85,26 +81,29 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     //Событие при нажатии элемент списка фильмов
     fun filmLikeEvent(filmsItem: FilmsItem, note: String, context: Context) {
         if (note == context.resources.getString(R.string.NOTE_STAR)) {
-            val lik: Int = if (!filmsItem.star) 1 else 0
+            val selectFavorites: Int = if (!filmsItem.star) BuildConfig.ACTION_TO_ACCEPT else BuildConfig.ACTION_CANCEL
             _snackBarString.postValue(
-                "${lik}%${filmsItem.imageFilm}%${filmsItem.nameFilm}%" + context.resources.getString(
-                    R.string.UploadWorker_star
+                SnacbarData(
+                    selectFavorites,
+                    filmsItem.imageFilm,
+                    filmsItem.nameFilm,
+                    context.resources.getString(R.string.UploadWorker_star)
                 )
             )
-            Observable.just(updateLike(lik, filmsItem.imageFilm))
+            Observable.just(updateLike(selectFavorites, filmsItem.imageFilm))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(Schedulers.computation())
                 .doOnNext { selectFilmItem(filmsItem.idFilm) }
                 .subscribe()
         } else if (note == context.resources.getString(R.string.NOTE_DESCRIPTION)) {
-            openDescriptions(filmsItem)
+
         } else if (note == context.resources.getString(R.string.NOTE_DEL_ITEM)) {
             deleteFilm(filmsItem, context)
         } else if (note == context.resources.getString(R.string.NOTE_REMINDER)) {
-            if (filmsItem.reminder == 0) {
+            if (filmsItem.reminder == BuildConfig.ACTION_CANCEL) {
                 openReminderAdd(filmsItem)
-            } else if (filmsItem.reminder == 1) {
-                Observable.just(updateReminder(0, filmsItem.imageFilm, ""))
+            } else if (filmsItem.reminder == BuildConfig.ACTION_TO_ACCEPT) {
+                Observable.just(updateReminder(BuildConfig.ACTION_CANCEL, filmsItem.imageFilm, ""))
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(Schedulers.computation())
                     .doOnNext { selectFilmItem(filmsItem.idFilm) }
@@ -188,14 +187,17 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
                     viewModelScope.launch(Dispatchers.Main) {
                         _animBool.value = false
                     }
-                    _snackBarString.postValue("-1%image%name%note")
+                    _snackBarString.postValue(
+                        SnacbarData(
+                            -1,
+                            "image",
+                            "name",
+                            "note"
+                        )
+                    )
                     error.printStackTrace()
-                },
+                }
             )
-    }
-
-    private fun openDescriptions(listItem: FilmsItem) {
-        _filmItemLoad.postValue(listItem)
     }
 
     //Загрузка списка фильмов из рума
@@ -267,9 +269,9 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
 
     //Обновляет список фильмов и вставляет в MutableLiveData
     private fun updateList() {
-        list.clear()
+        listFilmsItem.clear()
         items.forEach { itemFilm ->
-            list.addAll(
+            listFilmsItem.addAll(
                 fillArrays(
                     arrayOf(itemFilm.title),
                     arrayOf(itemFilm.image),
@@ -281,7 +283,7 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
                 )
             )
         }
-        _repos.postValue(list)
+        _repos.postValue(listFilmsItem)
     }
 
     //Создает массив списка фильмов
@@ -292,18 +294,18 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
         idFilmArray: Array<Int>,
         reminderArray: Array<Int>,
         reminderDataTime: Array<String>,
-        likeFilmArray: Array<Int>,
+        likeFilmArray: Array<Int>
     ): List<FilmsItem> {
         val list = ArrayList<FilmsItem>()
         for (i in titleArray.indices) {
             val shortDescription = descriptionArray[i]
             var proverka = ""
-            if (titleArray[i] == filmP) {
-                proverka = filmP
+            if (titleArray[i] == filmCheck) {
+                proverka = filmCheck
             }
             var boolFavorite: Boolean
-            val like = likeFilmArray[i]
-            boolFavorite = like != 0
+            val selectFavorites = likeFilmArray[i]
+            boolFavorite = selectFavorites != 0
 
             val listItem = FilmsItem(
                 titleArray[i],
@@ -323,7 +325,7 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     //При создании фрагмента создается скрол листенер, который возвращает номер позиции
     //Если до конца списка 6 элементов то грузятся новые
     fun addList(pos: Int, countAdapter: Int) {
-        if (countAdapter.minus(pos) == 6) {
+        if (countAdapter.minus(pos) == beforeEndOfList) {
             if (!addListFilm) {
                 openFilmLis()
                 addListFilm = true
@@ -332,35 +334,35 @@ class RepoListFilmsViewModel @Inject constructor(application: Application) :
     }
 
     //Обновление лайка фильма: добавление/удаление в/из избранного
-    fun updateLike(lik: Int, imagePath: String) {
+    fun updateLike(selectFavorites: Int, imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.updateLike(lik, imagePath)
+            repository.updateLike(selectFavorites, imagePath)
         }
     }
 
     //Событие удаления фильма, вызывается диалоговое окно для подтверждения удаления
     private fun deleteFilm(filmsItem: FilmsItem, context: Context) {
-        val bld: AlertDialog.Builder = AlertDialog.Builder(context)
-        val lst =
+        val builderAlertDialog: AlertDialog.Builder = AlertDialog.Builder(context)
+        val list =
             DialogInterface.OnClickListener { dialog, which ->
                 if (which == -2) {
                     dialog.dismiss()
                 } else if (which == -1) {
-                    dellSelectedFilm(filmsItem.imageFilm)
+                    deleteSelectedFilm(filmsItem.imageFilm)
                     viewModelScope.launch(Dispatchers.IO) {
                         selectFilmItem(filmsItem.idFilm)
                     }
                 }
             }
-        bld.setMessage(R.string.alertDialogExit)
-        bld.setNegativeButton(context.resources.getString(R.string.labelNo), lst)
-        bld.setPositiveButton(context.resources.getString(R.string.labelYes), lst)
-        val dialog: AlertDialog = bld.create()
+        builderAlertDialog.setMessage(R.string.alertDialogExit)
+        builderAlertDialog.setNegativeButton(context.resources.getString(R.string.labelNo), list)
+        builderAlertDialog.setPositiveButton(context.resources.getString(R.string.labelYes), list)
+        val dialog: AlertDialog = builderAlertDialog.create()
         dialog.show()
     }
 
     //Удаляем фильм из списка.
-    private fun dellSelectedFilm(imagePath: String) {
+    private fun deleteSelectedFilm(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteFilm(imagePath)
         }

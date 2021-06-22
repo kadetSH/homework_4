@@ -1,6 +1,5 @@
 package com.example.lesson03.recyclerMy
 
-import android.media.Image
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -8,6 +7,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lesson03.BuildConfig
 import com.example.lesson03.R
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.template.view.*
@@ -15,14 +15,14 @@ import kotlinx.android.synthetic.main.template.view.*
 class FilmsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     private val url = "https://themoviedb.org/t/p/w200"
-    private val key = "api_key=2931998c3a80d7806199320f76d65298"
-    private val lang = "language=ru-Ru"
+    private val key = BuildConfig.apiKey
+    private val lang = BuildConfig.langRu
 
     private val colorTrue = ContextCompat.getColor(itemView.context, R.color.starTrue)
     private val colorFalse = ContextCompat.getColor(itemView.context, R.color.starFalse)
     var star: ImageView = itemView.idStar
     var description: Button = itemView.description
-    var dellFilmIcon: ImageView = itemView.dellFilm
+    var deleteFilmIcon: ImageView = itemView.dellFilm
     var reminder: ImageView = itemView.idReminder
     val reminderDataTime: TextView = itemView.idReminderDataTime
 
@@ -55,9 +55,8 @@ class FilmsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             reminder.setBackgroundColor(colorFalse)
             reminderDataTime.isVisible = false
         }
-
     }
 
-    private fun getImagePath(name : String): String = "${url}${name}?${key}&${lang}"
+    private fun getImagePath(name : String): String = "${url}${name}?api_key=${key}&language=${lang}"
 
 }

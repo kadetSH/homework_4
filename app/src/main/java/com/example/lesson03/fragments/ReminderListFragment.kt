@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.lesson03.BuildConfig
 import com.example.lesson03.R
 import com.example.lesson03.recyclerMy.Decor
 import com.example.lesson03.recyclerMy.FilmsAdapter
@@ -23,7 +24,7 @@ import javax.inject.Inject
 class ReminderListFragment : DaggerFragment() {
 
     companion object {
-        const val TAG = "ProverkaTAG"
+        const val TAG = "CheckTAG"
     }
 
     @Inject
@@ -32,7 +33,9 @@ class ReminderListFragment : DaggerFragment() {
         viewModelFactory
     }
 
-    private var recyclerView: RecyclerView? = null
+    private val recyclerView by lazy {
+        requireActivity().findViewById(R.id.id_recyclerViewReminder) as RecyclerView
+    }
     var list = ArrayList<FilmsItem>()
     private val adapter by lazy {
         FilmsAdapter(
@@ -64,7 +67,7 @@ class ReminderListFragment : DaggerFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d(FavoritesFragment.TAG_favorites, "фавориты - onViewCreated")
-        initRecycler(view)
+        initRecycler()
         observeViewModel()
     }
 
@@ -72,14 +75,14 @@ class ReminderListFragment : DaggerFragment() {
         viewModel.readAllReminder.observe(viewLifecycleOwner, Observer<List<RFilm>> { result ->
             list.clear()
             result.forEach { item ->
-                val like: Boolean = item.like != 0
+                val selectFavorites: Boolean = item.like != BuildConfig.ACTION_CANCEL
                 list.add(
                     FilmsItem(
                         item.name,
                         item.imagePath,
                         item.description,
                         "",
-                        like,
+                        selectFavorites,
                         item.idFilm,
                         item.reminder,
                         item.reminderDataTime
@@ -101,12 +104,11 @@ class ReminderListFragment : DaggerFragment() {
         })
     }
 
-    private fun initRecycler(view: View) {
+    private fun initRecycler() {
         val layoutManager = LinearLayoutManager(context)
-        recyclerView = view?.findViewById(R.id.id_recyclerViewReminder)
-        recyclerView?.layoutManager = layoutManager
-        recyclerView?.addItemDecoration(Decor(22))
-        recyclerView?.adapter = adapter
+        recyclerView.layoutManager = layoutManager
+        recyclerView.addItemDecoration(Decor(22))
+        recyclerView.adapter = adapter
     }
 
     interface OnFilmLikeClickListener {
