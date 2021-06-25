@@ -16,7 +16,9 @@
         <item
             android:id="@+id/id_favorites"
             android:icon="@drawable/ic_favorites"
-            android:title="@string/menu_title_favorites" />
+            android:title="@string/menu_title_favorites"
+
+            />
         <item
             android:id="@+id/id_watch_leater"
             android:icon="@drawable/ic_watch_later"

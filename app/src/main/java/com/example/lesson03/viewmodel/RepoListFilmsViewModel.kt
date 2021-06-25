@@ -18,7 +18,6 @@ import com.example.lesson03.room.FilmRepository
 import com.example.lesson03.room.RFilm
 import com.example.lesson03.snacbar.SnacbarData
 import io.reactivex.*
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import java.io.IOException

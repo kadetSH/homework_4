@@ -88,8 +88,8 @@ class FilmsAdapterTest {
         verifyNoMoreInteractions(observer)
     }
 
-    @Test
-    fun qw() {
+//    @Test
+//    fun qw() {
 //        val parent = mock(ViewGroup::class.java)
 //        val parent2 = mockk<ViewGroup>()
 //        val itemView = mock(View::class.java)
@@ -136,31 +136,13 @@ class FilmsAdapterTest {
 //        every { presenter.onCreateViewHolder(parent2, 0) } returns viewHolder
 //
 //        println(itemView2.id)
-
+//
 //        assertThat(viewHolder.itemView).isSameInstanceAs(itemView2)
-
-    }
-
-    @Test
-    fun df() {
-//        var itemsList = ArrayList<FilmsItem>()
-//        val itemsMock = ArrayList<FilmsItem>()
-//        itemsMock.add(mock(FilmsItem::class.java))
-//        itemsMock.add(mock(FilmsItem::class.java))
-
-//        println(itemsMock.size)
-//        adapterFilms?.setItems(itemsMock)
 //
-//        println(adapterFilms?.itemCount)
-//
-//        for (position: Int in 0 until itemsMock.size ){
-//            val filmsViewHolder = mock(FilmsViewHolder::class.java)
-//            println(1)
-//            adapterFilms?.onBindViewHolder(filmsViewHolder, position)
-//            verify(filmsViewHolder).bind(itemsMock[position])
-//        }
+//    }
 
-    }
+
+
 
 //    class FinalClass(inflater: LayoutInflater, items: ArrayList<FilmsItem>) {
 //        private val inflater = inflater
