@@ -8,5 +8,7 @@ data class FilmsItem(
     var shortDescription : String,
     var proverka : String,
     var star : Boolean,
-    var idFilm : Int
+    var idFilm : Int,
+    var reminder : Int,
+    var reminderDataTime : String
 ) : Serializable

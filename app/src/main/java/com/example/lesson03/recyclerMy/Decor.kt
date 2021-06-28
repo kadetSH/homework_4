@@ -5,7 +5,7 @@ import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
-public class Decor(private val verticalSpaceHeight: Int) : RecyclerView.ItemDecoration() {
+class Decor(private val verticalSpaceHeight: Int) : RecyclerView.ItemDecoration() {
 
 
 

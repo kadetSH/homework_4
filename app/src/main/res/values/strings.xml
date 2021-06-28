@@ -11,10 +11,65 @@
     <string name="title_favorites_activity" translatable="false">Фавориты</string>
     <string name="menu_title_films" translatable="false">Фильмы</string>
     <string name="menu_title_favorites" translatable="false">Фавориты</string>
+    <string name="menu_watch_later" translatable="false">Посмотреть позже</string>
     <string name="menu_title_films_add" translatable="false">Добавить фильм</string>
     <string name="menu_title_films_dell" translatable="false">Удалить фильм</string>
     <string name="menu_title_invite" translatable="false">Пригласить</string>
-    <string name="header_name">Просмотр фильмов</string>
+    <string name="dialog_dellete_film" translatable="false">Удалить фильм из списка?</string>
+    <string name="header_name" translatable="false">Просмотр фильмов</string>
     <string name="titleToolbar" translatable="false">Дополнительный выбор</string>
+    <string name="reminderTitle" translatable="false">Выбор даты и времени для напоминания</string>
+    <string name="reminderDate" translatable="false">Дата</string>
+    <string name="reminderTime" translatable="false">Время</string>
+    <string name="reminderSave" translatable="false">Сохранить</string>
+    <string name="reminderCancell" translatable="false">Отменить</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="title0" translatable="false">Выбор фильма</string>
+    <string name="addFavorites" translatable="false"> - добавили в избранное</string>
+    <string name="dellFavorites" translatable="false"> - удалили из избранного</string>
+    <string name="noConnect" translatable="false">Нет связи с сервером</string>
+    <string name="cancellAction" translatable="false">Отменить действие</string>
+    <string name="repeatAction" translatable="false">Повторить действие</string>
+    <string name="Hello" translatable="false">Привет!</string>
+    <string name="Exit" translatable="false">Выйти из приложения?</string>
+    <string name="alertDialogExit" translatable="false">Удалить фильм из списка?</string>
+    <string name="toastNoDateReminder" translatable="false">Не выбрана дата напоминания</string>
+    <string name="toastNoTimeReminder" translatable="false">Не выбрано время напоминания</string>
+    <string name="toastWrongTime" translatable="false">Время напоминания не может быть меньше текущего времени</string>
+    <string name="toastViewingReminder" translatable="false">Напоминание просмотра фильма</string>
+    <string name="NOTE_DESCRIPTION" translatable="false">Описание фильма</string>
+    <string name="NOTE_DEL_ITEM" translatable="false">Удалить фильм</string>
+    <string name="NOTE_REMINDER" translatable="false">Напоминание о просмотре</string>
+    <string name="NOTE_REMINDER_DATA" translatable="false">Дата напоминания просмотра</string>
+    <string name="NOTE_STAR" translatable="false">Избранное</string>
+    <string name="UploadWorker_nameFilm" translatable="false">nameFilm</string>
+    <string name="UploadWorker_descriptionFilm" translatable="false">descriptionFilm</string>
+    <string name="UploadWorker_imagePath" translatable="false">imagePath</string>
+    <string name="UploadWorker_idFilm" translatable="false">idFilm</string>
+    <string name="UploadWorker_titleLabel" translatable="false">titleLabel</string>
+    <string name="UploadWorker_check" translatable="false">check</string>
+    <string name="UploadWorker_star" translatable="false">star</string>
+    <string name="UploadWorker_reminder" translatable="false">reminder</string>
+    <string name="UploadWorker_channelName" translatable="false">Channel name</string>
+    <string name="UploadWorker_channelDescription" translatable="false">Channel description"</string>
+    <string name="UploadWorker_clickMe" translatable="false">Click me</string>
+    <string name="UploadWorker_reminderDataTime" translatable="false">reminderDataTime</string>
+    <string name="UploadWorker_viewRecommendation" translatable="false">Рекомендуем посмотреть</string>
+    <string name="INTENT_label_EXTRA_nameFilm" translatable="false">EXTRA_nameFilm</string>
+    <string name="INTENT_label_EXTRA_descriptionFilm" translatable="false">EXTRA_descriptionFilm</string>
+    <string name="INTENT_label_EXTRA_imagePath" translatable="false">EXTRA_imagePath</string>
+    <string name="INTENT_label_filmsItem" translatable="false">filmsItem</string>
+    <string name="MessagingService_title" translatable="false">фильм название</string>
+    <string name="labelYes" translatable="false">Да</string>
+    <string name="labelNo" translatable="false">Нет</string>
+    <string name="bundleFlag_favorites" translatable="false">favorites</string>
+    <string name="bundleFlag_repoList" translatable="false">repoList</string>
+    <string name="bundleFlag_listItem" translatable="false">listItem</string>
+    <string name="bundleFlag_parent" translatable="false">parent</string>
+
+
+
+
 
 </resources>

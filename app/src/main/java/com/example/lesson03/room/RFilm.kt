@@ -11,5 +11,7 @@ data class RFilm(
     val name : String,
     val imagePath : String,
     val like : Int,
-    val description : String
+    val description : String,
+    val reminder : Int,
+    val reminderDataTime : String
 )
